@@ -1,0 +1,133 @@
+html, body { height: 100%; }
+
+.desktop {
+  min-height: calc(100vh - 34px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel-window { width: 100%; }
+.panel-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.panel-badge { font-size: 12px; font-weight: bold; padding: 6px 10px; }
+.combo-badge { margin-left: auto; color: #7a1c1c; }
+.panel-gauge { width: 160px; }
+.panel-gauge label { font-size: 10px; display: block; margin-bottom: 2px; }
+
+.columns {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.col-quests { width: 26%; min-width: 260px; }
+.col-work { flex: 1; min-width: 360px; }
+.col-casino { width: 32%; min-width: 380px; }
+
+.quest-title { font-weight: bold; color: var(--ledger-dim); margin-bottom: 8px; font-size: 13px; }
+
+.quest-steps { margin: 0 0 10px 0; padding-left: 20px; font-size: 12px; }
+.quest-steps li { margin-bottom: 6px; }
+.quest-steps li.done { color: var(--ledger-dim); text-decoration: line-through; }
+.quest-steps li.current { font-weight: bold; }
+.quest-steps li.pending { color: var(--shadow); }
+
+.quest-current { padding: 8px; margin-bottom: 12px; }
+.quest-current-text { font-size: 12px; margin-bottom: 6px; }
+
+.intern-box { padding: 8px; margin-bottom: 12px; }
+.intern-title { font-weight: bold; font-size: 12px; color: var(--ledger-dim); margin-bottom: 4px; }
+.intern-stats { font-size: 11px; margin-bottom: 6px; }
+.intern-box .win95-btn { font-size: 11px; width: 100%; }
+.intern-box .win95-btn:disabled { opacity: 0.6; }
+
+.history-title { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+.history-log { height: 220px; overflow-y: auto; padding: 6px; font-size: 11px; }
+.history-item { padding: 4px 2px; border-bottom: 1px dotted var(--shadow); }
+.history-item.casino-win { color: var(--ledger-dim); }
+.history-item.casino-loss { color: var(--maroon); }
+
+.work-body { display: flex; flex-direction: column; height: 100%; }
+.work-instruction { font-size: 14px; font-weight: bold; margin-bottom: 10px; min-height: 20px; }
+.work-zone {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+}
+.work-hint { font-size: 11px; color: var(--shadow); margin-top: 8px; min-height: 16px; text-align: center; }
+
+/* tap step */
+.tap-btn-big {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 22px 40px;
+}
+
+/* find step */
+.find-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.find-tile {
+  width: 64px;
+  height: 64px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.find-tile.found {
+  background: #cfe9d6;
+  color: #1a5c2a;
+  cursor: default;
+}
+
+/* puzzle step */
+.puzzle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.puzzle-tag {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.puzzle-tag.picked {
+  background: #cfe9d6;
+  color: #1a5c2a;
+  cursor: default;
+}
+
+.casino-body { padding: 0; }
+.casino-frame {
+  width: 100%;
+  height: 780px;
+  border: none;
+  display: block;
+}
+
+@media (max-width: 1100px) {
+  .columns { flex-direction: column; }
+  .col-quests, .col-work, .col-casino { width: 100%; min-width: 0; }
+  .casino-frame { height: 900px; }
+}

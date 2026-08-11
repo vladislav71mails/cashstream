@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="win95-window" id="mainWindow">
+    <div class="win95-titlebar">
+      <span>💼 КЭШ.СТРИМ.exe — Рабочий стол</span>
+      <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
+    </div>
+
+    <div class="win95-body">
+      <div class="cash-row">
+        <div class="cash-ticker">
+          💰 <span id="cashValue">0</span><span class="cursor-blink">_</span>
+        </div>
+        <div class="level-badge bevel-out">Ур. <span id="levelValue">1</span></div>
+      </div>
+
+      <div class="gauges">
+        <div class="gauge-row">
+          <label>Фокус</label>
+          <div class="win95-gauge focus"><i id="focusFill" style="width:100%"></i><span class="gauge-label" id="focusLabel">100</span></div>
+        </div>
+        <div class="gauge-row">
+          <label>Выгорание</label>
+          <div class="win95-gauge burnout"><i id="burnoutFill" style="width:0%"></i><span class="gauge-label" id="burnoutLabel">0</span></div>
+        </div>
+      </div>
+
+      <div class="intern-mini bevel-out" id="internMini">🧑‍💼 x<span id="internCountPopup">0</span> стажёров · +<span id="internIncomePopup">0</span>💰/с</div>
+
+      <div class="quest-box bevel-in">
+        <div class="quest-title" id="questTitle">Загрузка квеста…</div>
+        <div class="quest-step" id="questStep">—</div>
+        <div class="win95-gauge quest"><i id="questFill" style="width:0%"></i><span class="gauge-label" id="questLabel">0/0</span></div>
+      </div>
+
+      <div class="work-zone bevel-in" id="workZone">
+        <button id="tapBtn" class="win95-btn bevel-out tap-btn">Работать 🖱️</button>
+        <div id="popupHint" class="hint"></div>
+      </div>
+
+      <div class="actions">
+        <button id="openFull" class="win95-btn bevel-out">🖥️ Развернуть на весь экран</button>
+        <button id="openCasino" class="win95-btn bevel-out">🎰 Перерыв (Казино)</button>
+      </div>
+    </div>
+
+    <div class="win95-taskbar">
+      <button class="win95-btn bevel-out start-btn">🪟 СТАРТ</button>
+      <div class="taskbar-sep"></div>
+      <div class="tray">
+        <span title="Комбо">🔥 x<span id="comboValue">1.0</span></span>
+        <span id="clock">00:00</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 500px;
+    min-height: 700px;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+}
+
+.container {
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ffd700;
+    font-size: 24px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+h1 i {
+    margin-right: 10px;
+}
+
+.balance-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #ffd700;
+    backdrop-filter: blur(10px);
+}
+
+.balance {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.gold {
+    color: #ffd700;
+    margin-left: 5px;
+}
+
+.reset-btn {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.reset-btn:hover {
+    background: #ff3742;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 71, 87, 0.4);
+}
+
+.game-selector {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.game-tab {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.game-tab.active {
+    background: #ffd700;
+    color: #1a1a2e;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.game-section {
+    display: none;
+}
+
+.game-section.active {
+    display: block;
+}
+
+.bet-controls {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bet-controls label {
+    display: block;
+    margin-bottom: 10px;
+    color: #ffd700;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.bet-amount {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.bet-btn, .slot-bet-btn {
+    flex: 1;
+    padding: 12px;
+    background: #3742fa;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.bet-btn:hover, .slot-bet-btn:hover {
+    background: #5352ed;
+    transform: translateY(-2px);
+}
+
+.bet-btn.active, .slot-bet-btn.active {
+    background: #ffd700;
+    color: #1a1a2e;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.current-bet {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 18px;
+    color: #ffd700;
+    font-weight: bold;
+    padding: 10px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Контейнер для рулетки с Canvas */
+.roulette-container {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    margin: 25px auto;
+    border-radius: 50%;
+    border: 8px solid #ffd700;
+    box-shadow: 
+        0 0 40px rgba(255, 215, 0, 0.4),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    background: #2f3542;
+}
+
+.roulette-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    background: #ffd700;
+    border-radius: 50%;
+    z-index: 10;
+    border: 6px solid #ff4757;
+    box-shadow: 
+        0 0 25px rgba(255, 215, 0, 0.8),
+        inset 0 0 15px rgba(255, 71, 87, 0.3);
+}
+
+.roulette-pointer {
+    position: absolute;
+    top: 102px;
+    left: -4%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    /* border-top: 25px solid #ff4757; */
+    z-index: 100;
+    filter: drop-shadow(0 0 10px rgba(255, 71, 87, 0.8));
+    transition: all 0.3s;
+    border-top: 50px solid transparent;
+    border-left: 80px solid #ffd700;
+    border-bottom: 50px solid transparent;
+}
+.winning-spin .roulette-pointer {
+    animation: pointerPulse 0.5s ease-in-out infinite;
+    border-top-color: #ffd700;
+}
+.winning-spin  {
+    background: #ff4757;
+    border-color: #ffd700;
+}
+/* Анимация мигания для выигрышного числа */
+@keyframes numberFlash {
+    0%, 100% { 
+        fill: white;
+        font-weight: bold;
+    }
+    50% { 
+        fill: #ffd700;
+        font-weight: 900;
+    }
+}
+
+@keyframes pointerPulse {
+    0% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+.winning-number {
+    animation: numberFlash 0.5s ease-in-out infinite;
+}
+
+/*
+.roulette-pointer::after {
+    content: '';
+    position: absolute;
+    top: -28px;
+    left: -8px;
+    width: 16px;
+    height: 16px;
+    background: #ffd700;
+    border-radius: 50%;
+    border: 3px solid #ff4757;
+    transition: all 0.3s;
+}
+*/
+
+
+
+/* Ставки */
+.bet-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.bet-group {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bet-group h3 {
+    margin-bottom: 12px;
+    color: #ffd700;
+    font-size: 16px;
+    text-align: center;
+}
+
+.bet-option {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    background: #3742fa;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.bet-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(55, 66, 250, 0.3);
+}
+
+.bet-option.active {
+    background: #ffd700;
+    color: #1a1a2e;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.red-bet {
+    background: linear-gradient(135deg, #ff3838, #ff6b6b);
+}
+
+.black-bet {
+    background: linear-gradient(135deg, #2d3436, #636e72);
+}
+
+.green-bet {
+    background: linear-gradient(135deg, #00b894, #55efc4);
+}
+
+/* Ставки на числа */
+.number-bets {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.number-bet {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: #3742fa;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.number-bet:hover {
+    transform: scale(1.1);
+}
+
+.number-bet.active {
+    background: #ffd700;
+    color: #1a1a2e;
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.current-number-bet {
+    margin-top: 12px;
+    text-align: center;
+    color: #ffd700;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 8px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 6px;
+}
+
+/* Мини-рулетка для выбора чисел */
+.mini-roulette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin: 15px 0;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mini-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    transition: all 0.3s;
+}
+
+.mini-number.red {
+    background: linear-gradient(135deg, #ff3838, #ff6b6b);
+}
+
+.mini-number.black {
+    background: linear-gradient(135deg, #2d3436, #636e72);
+}
+
+.mini-number.green {
+    background: linear-gradient(135deg, #00b894, #55efc4);
+}
+
+.mini-number.active {
+    border: 3px solid #ffd700;
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    z-index: 1;
+}
+
+/* Слоты */
+.slot-machine {
+    background: #2f3542;
+    border-radius: 15px;
+    padding: 25px;
+    margin: 25px 0;
+    border: 4px solid #ffd700;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.reels {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.reel {
+    flex: 1;
+    height: 100px;
+    background: linear-gradient(135deg, #ffffff, #f1f2f6);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: #1a1a2e;
+    border: 3px solid #ffd700;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.slot-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, transparent, #ff4757, transparent);
+    transform: translateY(-50%);
+    z-index: 1;
+    box-shadow: 0 0 15px rgba(255, 71, 87, 0.8);
+}
+
+.paytable {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 25px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.paytable h3 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.paytable ul {
+    list-style: none;
+    padding: 0;
+}
+
+.paytable li {
+    margin: 8px 0;
+    color: #ddd;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border-left: 3px solid #ffd700;
+}
+
+/* Общие элементы */
+.spin-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(45deg, #ff6b6b, #ffd700);
+    border: none;
+    border-radius: 12px;
+    color: #1a1a2e;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 25px 0;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.spin-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+}
+
+.spin-btn:active {
+    transform: translateY(-1px);
+}
+
+.spin-btn i {
+    font-size: 22px;
+}
+
+.result {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 16px;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    line-height: 1.5;
+}
+
+.history {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 25px;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history h3 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 18px;
+}
+
+#gameHistory {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.history-item {
+    padding: 10px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 6px;
+    border-left: 4px solid transparent;
+}
+
+.win {
+    color: #2ed573;
+    border-left-color: #2ed573 !important;
+}
+
+.loss {
+    color: #ff4757;
+    border-left-color: #ff4757 !important;
+}
+
+/* Анимации */
+@keyframes winGlow {
+    0% { 
+        filter: brightness(1) drop-shadow(0 0 5px gold);
+    }
+    50% { 
+        filter: brightness(1.5) drop-shadow(0 0 20px gold);
+    }
+    100% { 
+        filter: brightness(1) drop-shadow(0 0 5px gold);
+    }
+}
+
+.win-glow {
+    animation: winGlow 0.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinning {
+    animation: spin 0.1s linear infinite;
+}
+
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}

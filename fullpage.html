@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>КЭШ.СТРИМ — Рабочий стол</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="fullpage.css">
+</head>
+<body>
+
+  <div class="desktop">
+
+    <!-- Панель управления -->
+    <div class="win95-window panel-window">
+      <div class="win95-titlebar">
+        <span>🖥️ Панель управления — КЭШ.СТРИМ</span>
+        <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
+      </div>
+      <div class="win95-body panel-body">
+        <div class="cash-ticker">💰 <span id="cashValue">0</span><span class="cursor-blink">_</span></div>
+        <div class="panel-badge bevel-out">Уровень <span id="levelValue">1</span></div>
+        <div class="panel-badge bevel-out">XP <span id="xpValue">0</span>/<span id="xpNeedValue">100</span></div>
+
+        <div class="panel-gauge">
+          <label>Фокус</label>
+          <div class="win95-gauge focus"><i id="focusFill" style="width:100%"></i><span class="gauge-label" id="focusLabel">100</span></div>
+        </div>
+        <div class="panel-gauge">
+          <label>Выгорание</label>
+          <div class="win95-gauge burnout"><i id="burnoutFill" style="width:0%"></i><span class="gauge-label" id="burnoutLabel">0</span></div>
+        </div>
+
+        <div class="panel-badge bevel-out combo-badge">🔥 Комбо x<span id="comboValue">1.0</span></div>
+      </div>
+    </div>
+
+    <!-- Три окна: квесты / рабочая зона / казино -->
+    <div class="columns">
+
+      <!-- Квесты -->
+      <div class="win95-window col-quests">
+        <div class="win95-titlebar">
+          <span>📋 Квесты дня</span>
+          <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
+        </div>
+        <div class="win95-body">
+          <div class="quest-title" id="questTitle">Загрузка…</div>
+          <ol class="quest-steps" id="questStepsList"></ol>
+          <div class="quest-current bevel-in">
+            <div class="quest-current-text" id="questStepText">—</div>
+            <div class="win95-gauge quest"><i id="questFill" style="width:0%"></i><span class="gauge-label" id="questLabel">0/0</span></div>
+          </div>
+
+          <div class="intern-box bevel-in">
+            <div class="intern-title">🧑‍💼 Стажёры (авто-клики)</div>
+            <div class="intern-stats">Нанято: <span id="internCount">0</span> · Доход: <span id="internIncome">0</span>💰/с</div>
+            <button id="hireIntern" class="win95-btn bevel-out">Нанять за <span id="internCost">400</span>💰</button>
+          </div>
+
+          <div class="history-title">🗂️ Журнал событий</div>
+          <div class="history-log bevel-in" id="historyLog"></div>
+        </div>
+      </div>
+
+      <!-- Рабочая зона -->
+      <div class="win95-window col-work">
+        <div class="win95-titlebar">
+          <span>💻 Рабочая зона</span>
+          <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
+        </div>
+        <div class="win95-body work-body">
+          <div class="work-instruction" id="workInstruction">—</div>
+          <div class="work-zone bevel-in" id="workZone"></div>
+          <div class="work-hint" id="workHint"></div>
+        </div>
+      </div>
+
+      <!-- Казино -->
+      <div class="win95-window col-casino">
+        <div class="win95-titlebar">
+          <span>🎰 Перерыв</span>
+          <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
+        </div>
+        <div class="win95-body casino-body">
+          <iframe id="casinoFrame" src="casino.html" class="casino-frame"></iframe>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="win95-taskbar">
+    <button class="win95-btn bevel-out start-btn">🪟 СТАРТ</button>
+    <div class="taskbar-sep"></div>
+    <span class="taskbar-app bevel-out">💼 КЭШ.СТРИМ.exe</span>
+    <div class="tray">
+      <span title="Сегодня заработано">📈 <span id="todayCash">0</span></span>
+      <span title="Квестов завершено">✅ <span id="todayChains">0</span></span>
+      <span id="clock">00:00</span>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="fullpage.js"></script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+/* ==========================================================================
+   КЭШ.СТРИМ — тема «Офис 90-х»
+   Палитра:  face #c0c0c0 · highlight #ffffff · shadow #808080 · dark #000000
+             desktop teal #008080 · titlebar #000080→#1084d0
+             ledger green #00d95f (кэш) · maroon #7a1c1c (выгорание)
+   Шрифты:   Tahoma/MS Sans Serif — интерфейс · Consolas/Courier — цифры
+   ========================================================================== */
+
+:root {
+  --face: #c0c0c0;
+  --face-dark: #a8a8a8;
+  --hi: #ffffff;
+  --shadow: #808080;
+  --dark: #000000;
+  --desktop: #008080;
+  --title-a: #000080;
+  --title-b: #1084d0;
+  --ledger: #00d95f;
+  --ledger-dim: #0a5c31;
+  --maroon: #7a1c1c;
+  --paper: #f2efe4;
+  --ink: #1a1a1a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
+  color: var(--ink);
+  margin: 0;
+  background: var(--desktop);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 8px);
+}
+
+.ledger {
+  font-family: Consolas, "Courier New", monospace;
+  letter-spacing: 0.5px;
+}
+
+/* --- Win95 фаска (кнопки, панели) --- */
+.bevel-out {
+  background: var(--face);
+  border-top: 2px solid var(--hi);
+  border-left: 2px solid var(--hi);
+  border-right: 2px solid var(--dark);
+  border-bottom: 2px solid var(--dark);
+  box-shadow: inset 1px 1px 0 var(--face), inset -1px -1px 0 var(--face-dark);
+}
+
+.bevel-in {
+  background: var(--paper);
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--hi);
+  border-bottom: 2px solid var(--hi);
+}
+
+.win95-btn {
+  font-family: Tahoma, "MS Sans Serif", sans-serif;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.win95-btn:active {
+  border-top: 2px solid var(--dark);
+  border-left: 2px solid var(--dark);
+  border-right: 2px solid var(--hi);
+  border-bottom: 2px solid var(--hi);
+  transform: translate(1px, 1px);
+}
+.win95-btn:disabled {
+  color: var(--shadow);
+  cursor: not-allowed;
+}
+
+/* --- Окно --- */
+.win95-window {
+  background: var(--face);
+  border-top: 2px solid var(--hi);
+  border-left: 2px solid var(--hi);
+  border-right: 2px solid var(--dark);
+  border-bottom: 2px solid var(--dark);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.win95-titlebar {
+  background: linear-gradient(90deg, var(--title-a), var(--title-b));
+  color: #fff;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 3px 4px 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.win95-titlebar .dots { display: flex; gap: 3px; }
+.win95-titlebar .dots span {
+  width: 14px; height: 12px;
+  background: var(--face);
+  border-top: 1px solid var(--hi);
+  border-left: 1px solid var(--hi);
+  border-right: 1px solid var(--dark);
+  border-bottom: 1px solid var(--dark);
+  font-size: 9px;
+  color: #000;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 0;
+}
+
+.win95-body { padding: 8px; flex: 1; min-height: 0; }
+
+/* --- Прогресс-бар (шкала фокуса/выгорания/квеста) --- */
+.win95-gauge {
+  height: 16px;
+  background: var(--paper);
+  border-top: 1px solid var(--shadow);
+  border-left: 1px solid var(--shadow);
+  border-right: 1px solid var(--hi);
+  border-bottom: 1px solid var(--hi);
+  position: relative;
+  overflow: hidden;
+}
+.win95-gauge > i {
+  display: block;
+  height: 100%;
+  background-image: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 8px);
+  transition: width 0.25s ease-out;
+}
+.win95-gauge.focus > i { color: #1084d0; }
+.win95-gauge.burnout > i { color: var(--maroon); }
+.win95-gauge.quest > i { color: var(--ledger-dim); }
+.win95-gauge .gauge-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: bold; color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* --- Тикер кэша --- */
+.cash-ticker {
+  background: #001a00;
+  color: var(--ledger);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 18px;
+  padding: 4px 10px;
+  border-top: 2px solid var(--shadow);
+  border-left: 2px solid var(--shadow);
+  border-right: 2px solid var(--hi);
+  border-bottom: 2px solid var(--hi);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cash-ticker .cursor-blink {
+  animation: blink 1s step-start infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- Таскбар --- */
+.win95-taskbar {
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 34px;
+  background: var(--face);
+  border-top: 2px solid var(--hi);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+.start-btn {
+  font-weight: bold;
+  font-size: 12px;
+  display: flex; align-items: center; gap: 5px;
+}
+.taskbar-sep { width: 2px; align-self: stretch; margin: 3px 0; border-left: 1px solid var(--shadow); border-right: 1px solid var(--hi); }
+.tray {
+  margin-left: auto;
+  display: flex; gap: 10px;
+  font-size: 11px;
+  font-family: Consolas, "Courier New", monospace;
+  padding-right: 4px;
+}
+.tray span { display: flex; align-items: center; gap: 4px; }
+
+/* --- Рабочая зона: летящие цифры дохода --- */
+.floaty {
+  position: absolute;
+  font-weight: bold;
+  font-family: Consolas, "Courier New", monospace;
+  color: var(--ledger-dim);
+  pointer-events: none;
+  animation: floatUp 0.7s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-38px); opacity: 0; }
+}
+
+.shake { animation: shake 0.12s linear; }
+@keyframes shake {
+  0%, 100% { transform: translate(0,0); }
+  25% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, -1px); }
+}
+
+::-webkit-scrollbar { width: 16px; }
+::-webkit-scrollbar-track { background: var(--face); }
+::-webkit-scrollbar-thumb { background: var(--face); border: 1px solid var(--shadow); }

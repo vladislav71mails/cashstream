@@ -1,0 +1,49 @@
+body { width: 320px; }
+
+#mainWindow { width: 320px; }
+
+.cash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.level-badge {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 8px;
+}
+
+.gauges { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.gauge-row label { font-size: 11px; display: block; margin-bottom: 2px; }
+
+.intern-mini {
+  font-size: 10px;
+  text-align: center;
+  padding: 4px 6px;
+  margin-bottom: 8px;
+  color: var(--ledger-dim);
+}
+
+.quest-box { padding: 8px; margin-bottom: 8px; }
+.quest-title { font-weight: bold; font-size: 12px; color: var(--ledger-dim); margin-bottom: 2px; }
+.quest-step { font-size: 12px; margin-bottom: 6px; min-height: 30px; }
+
+.work-zone {
+  position: relative;
+  padding: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  min-height: 90px;
+}
+
+.tap-btn { font-size: 13px; font-weight: bold; }
+.hint { font-size: 10px; color: var(--shadow); text-align: center; }
+
+.actions { display: flex; flex-direction: column; gap: 6px; }
+.actions .win95-btn { font-size: 11px; }

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Перерыв — Казино</title>
+    <link rel="stylesheet" href="casino.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { width: auto; min-height: auto; }
+        .break-note {
+            background: rgba(0,217,95,0.12);
+            border: 1px solid #00d95f;
+            color: #b9ffd6;
+            font-size: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-coins"></i> Перерыв: Казино</h1>
+
+        <div class="break-note">☕ Каждый раунд снимает 9 очков выгорания — это официальный перерыв.</div>
+
+        <div class="balance-section">
+            <div class="balance">
+                <span>Кошелёк:</span>
+                <span id="balance">0</span> <i class="fas fa-coins gold"></i>
+            </div>
+        </div>
+
+        <div class="game-selector">
+            <button id="rouletteTab" class="game-tab active">
+                <i class="fas fa-dharmachakra"></i> Биржа (рулетка)
+            </button>
+            <button id="slotsTab" class="game-tab">
+                <i class="fas fa-sliders-h"></i> Деловая встреча
+            </button>
+        </div>
+
+        <div id="rouletteGame" class="game-section active">
+            <div class="bet-controls">
+                <label>Ставка:</label>
+                <div class="bet-amount">
+                    <button class="bet-btn" data-amount="10">10</button>
+                    <button class="bet-btn" data-amount="50">50</button>
+                    <button class="bet-btn" data-amount="100">100</button>
+                    <button class="bet-btn" data-amount="500">500</button>
+                </div>
+                <div class="current-bet">
+                    Текущая ставка: <span id="currentBet">10</span>
+                </div>
+            </div>
+
+            <div class="roulette-container" id="rouletteContainer">
+                <canvas id="rouletteCanvas" class="roulette-canvas"></canvas>
+                <div class="roulette-pointer"></div>
+                <div class="center-circle"></div>
+            </div>
+            <button id="spinRoulette" class="spin-btn">
+                <i class="fas fa-play"></i> Крутить рулетку
+            </button>
+
+            <div class="result" id="rouletteResult">
+                Нажмите «Крутить рулетку» для начала игры
+            </div>
+            <div class="bet-options">
+                <div class="bet-group">
+                    <h3>Цвет:</h3>
+                    <button class="bet-option red-bet" data-type="color" data-value="red">Красный (x2)</button>
+                    <button class="bet-option black-bet" data-type="color" data-value="black">Черный (x2)</button>
+                    <button class="bet-option green-bet" data-type="color" data-value="green">Зеленый (x14)</button>
+                </div>
+
+                <div class="bet-group">
+                    <h3>Четность:</h3>
+                    <button class="bet-option" data-type="parity" data-value="even">Четное (x2)</button>
+                    <button class="bet-option" data-type="parity" data-value="odd">Нечетное (x2)</button>
+                </div>
+
+                <div class="bet-group">
+                    <h3>Конкретное число:</h3>
+                    <div class="number-bets">
+                        <button class="number-bet" data-type="number" data-value="0">0</button>
+                        <button class="number-bet" data-type="number" data-value="32">32</button>
+                        <button class="number-bet" data-type="number" data-value="15">15</button>
+                    </div>
+                    <div class="current-number-bet">
+                        Выбрано число: <span id="selectedNumber">нет</span> (x35)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="slotsGame" class="game-section">
+            <div class="bet-controls">
+                <label>Ставка за вращение:</label>
+                <div class="bet-amount">
+                    <button class="slot-bet-btn" data-amount="10">10</button>
+                    <button class="slot-bet-btn" data-amount="25">25</button>
+                    <button class="slot-bet-btn" data-amount="50">50</button>
+                    <button class="slot-bet-btn" data-amount="100">100</button>
+                </div>
+                <div class="current-bet">
+                    Текущая ставка: <span id="slotBet">10</span>
+                </div>
+            </div>
+
+            <div class="slot-machine">
+                <div class="reels">
+                    <div class="reel" id="reel1">💼</div>
+                    <div class="reel" id="reel2">💼</div>
+                    <div class="reel" id="reel3">💼</div>
+                </div>
+                <div class="slot-line"></div>
+            </div>
+
+            <div class="paytable">
+                <h3><i class="fas fa-list-alt"></i> Выплаты:</h3>
+                <ul>
+                    <li>3 x 💼 (кейс) = x100</li>
+                    <li>3 x 🪪 (визитка) = x50</li>
+                    <li>3 x 🖋️ (печать) = x20</li>
+                    <li>3 x 🥂 (шампанское) = x10</li>
+                    <li>3 x 📈 (график) = x5</li>
+                    <li>3 x ☕ (кофе) = x3</li>
+                    <li>3 x 📎 (скрепка) = x2</li>
+                </ul>
+            </div>
+
+            <button id="spinSlots" class="spin-btn">
+                <i class="fas fa-play"></i> Крутить встречу
+            </button>
+
+            <div class="result" id="slotsResult">
+                Нажмите «Крутить встречу» для начала игры
+            </div>
+        </div>
+
+        <div class="history">
+            <h3><i class="fas fa-history"></i> История раундов</h3>
+            <div id="gameHistory"></div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="casino.js"></script>
+</body>
+</html>
