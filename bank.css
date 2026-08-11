@@ -1,0 +1,308 @@
+/* Банк — стили в духе Windows 95 */
+.bank-root {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 13px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--win95-bg, #c0c0c0);
+  padding: 8px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.bank-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  font-weight: bold;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bank-topbar .wallet { color: var(--win95-text, #000000); }
+.bank-topbar .bank-credit-score { color: #2a5a8a; }
+.bank-topbar .bank-debt { color: #8a2a2a; }
+
+.bank-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--win95-shadow, #808080);
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.bank-tab {
+  padding: 6px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 12px;
+}
+.bank-tab.active {
+  background: var(--win95-titlebar, #000080);
+  color: white;
+}
+.bank-tab:hover:not(.active) {
+  background: var(--win95-highlight, #ffffff);
+}
+
+.bank-section {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 4px 0;
+  min-height: 0;
+}
+.bank-section.active { display: flex; }
+
+.bank-hint {
+  padding: 8px 12px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  font-size: 12px;
+  color: var(--win95-text, #000000);
+  flex-shrink: 0;
+}
+
+/* Селектор срока */
+.term-selector {
+  padding: 8px 12px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.term-label {
+  font-weight: bold;
+  font-size: 12px;
+  color: var(--win95-text, #000000);
+}
+
+.term-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.term-btn {
+  font-size: 11px;
+  padding: 4px 12px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  cursor: pointer;
+}
+.term-btn.active {
+  background: #000080;
+  color: white;
+  border-color: #000080;
+}
+.term-btn:hover:not(.active) {
+  background: var(--win95-highlight, #ffffff);
+}
+
+/* Депозиты */
+.deposit-list, .loan-list, .mortgage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.deposit-card, .loan-card, .mortgage-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deposit-card .deposit-info,
+.loan-card .loan-info,
+.mortgage-card .mortgage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.deposit-card .deposit-amount { font-weight: bold; font-size: 15px; }
+.deposit-card .deposit-rate { color: #2a7a3a; }
+.deposit-card .deposit-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.loan-card .loan-amount { font-weight: bold; color: #8a2a2a; }
+.loan-card .loan-rate { color: #8a6a2a; }
+.loan-card .loan-payment { color: var(--win95-text, #000000); }
+
+.mortgage-card .mortgage-property { font-weight: bold; }
+.mortgage-card .mortgage-balance { color: #8a2a2a; }
+.mortgage-card .mortgage-payment { color: #2a5a8a; }
+
+.deposit-controls, .loan-controls {
+  padding: 10px 14px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  flex-shrink: 0;
+}
+
+.deposit-row, .loan-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.win95-input {
+  background: white;
+  border: 2px solid;
+  border-color: var(--win95-shadow, #808080) var(--win95-highlight, #ffffff) var(--win95-highlight, #ffffff) var(--win95-shadow, #808080);
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  width: 120px;
+}
+
+.deposit-stats, .loan-stats {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--win95-text, #000000);
+}
+
+.bank-history-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  background: var(--win95-panel, #d4d0c8);
+  border-color: var(--win95-shadow, #808080);
+  max-height: 300px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  min-height: 100px;
+}
+
+.bank-history-log div {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--win95-shadow, #808080);
+}
+
+.bank-history-log .bank-deposit { color: #2a7a3a; }
+.bank-history-log .bank-withdraw { color: #8a6a2a; }
+.bank-history-log .bank-loan { color: #8a2a2a; }
+.bank-history-log .bank-mortgage { color: #2a5a8a; }
+.bank-history-log .bank-payment { color: #5a5a8a; }
+
+/* Шейк при ошибке */
+.shake {
+  animation: shake 0.13s ease-in-out;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Стили для кнопок действий */
+.bank-btn-sm {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.bank-btn-danger {
+  background: #c44a4a;
+  color: white;
+}
+.bank-btn-danger:hover {
+  background: #b33a3a;
+}
+.bank-btn-success {
+  background: #4a8a4a;
+  color: white;
+}
+.bank-btn-success:hover {
+  background: #3a7a3a;
+}
+.bank-btn-warning {
+  background: #c49a3a;
+  color: white;
+}
+.bank-btn-warning:hover {
+  background: #b38a2a;
+}
+
+/* Кнопки внутри карточек */
+.deposit-actions .win95-btn,
+.loan-card .win95-btn,
+.mortgage-card .win95-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+/* Пустые состояния */
+.empty-state {
+  color: var(--win95-shadow, #808080);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+}
+
+/* Кредитный рейтинг - цветовая индикация */
+.credit-F { color: #8a2a2a; }
+.credit-D { color: #c46a2a; }
+.credit-C { color: #c49a3a; }
+.credit-B { color: #6a8a3a; }
+.credit-A { color: #2a7a3a; }
+.credit-S { color: #2a5a8a; }
+
+/* Адаптив */
+@media (max-width: 600px) {
+  .bank-topbar {
+    font-size: 11px;
+    gap: 8px;
+  }
+  .bank-tab {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+  .deposit-row, .loan-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .win95-input {
+    width: 100%;
+  }
+  .deposit-card, .loan-card, .mortgage-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .deposit-card .deposit-actions {
+    justify-content: stretch;
+  }
+  .deposit-card .deposit-actions .win95-btn {
+    flex: 1;
+  }
+  .term-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .term-buttons {
+    justify-content: stretch;
+  }
+  .term-btn {
+    flex: 1;
+    text-align: center;
+  }
+}

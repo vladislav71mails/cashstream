@@ -729,3 +729,29 @@ CS.canAfford = function (state, amount) {
 CS.registerMistake = function (state) {
   state.focus = Math.max(0, state.focus - 2);
 };
+
+// ============================================================================
+// Банковская система — расширение состояния
+// ============================================================================
+
+// Добавляем банковские поля в DEFAULT_STATE
+CS.DEFAULT_STATE.bank = {
+  deposits: [],
+  loans: [],
+  mortgages: [],
+  history: []
+};
+
+// Обновляем normalizeState для банка
+const originalNormalize = CS.normalizeState;
+CS.normalizeState = function(stored) {
+  const state = originalNormalize(stored);
+  if (!state.bank) {
+    state.bank = JSON.parse(JSON.stringify(CS.DEFAULT_STATE.bank));
+  }
+  if (!Array.isArray(state.bank.deposits)) state.bank.deposits = [];
+  if (!Array.isArray(state.bank.loans)) state.bank.loans = [];
+  if (!Array.isArray(state.bank.mortgages)) state.bank.mortgages = [];
+  if (!Array.isArray(state.bank.history)) state.bank.history = [];
+  return state;
+};

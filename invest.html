@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Инвестиции — Рынок Айти</title>
+  <title>Инвестиции — Финансовый Хаб</title>
   <link rel="stylesheet" href="win95.css">
   <link rel="stylesheet" href="invest.css">
 </head>
@@ -12,22 +12,79 @@
     <div class="invest-topbar bevel-in">
       <div class="wallet">💰 <span id="walletCash">0</span></div>
       <div class="portfolio-value">📦 Портфель: <span id="portfolioValue">0</span></div>
-      <div class="realty-income">🏠 Доход недвижимости: <span id="realtyIncome">0</span>/с</div>
+      <div class="realty-income">🏠 Доход: <span id="realtyIncome">0</span>/с</div>
+      <div class="crypto-wallet">₿ Крипто: <span id="cryptoValue">0</span></div>
     </div>
 
     <div class="invest-tabs">
-      <button id="marketTab" class="win95-btn bevel-out invest-tab active">📈 Рынок Айти</button>
+      <button id="marketTab" class="win95-btn bevel-out invest-tab active">📈 Фондовый рынок</button>
       <button id="realtyTab" class="win95-btn bevel-out invest-tab">🏠 Недвижимость</button>
+      <button id="cryptoTab" class="win95-btn bevel-out invest-tab">₿ Криптобиржа</button>
+      <button id="miningTab" class="win95-btn bevel-out invest-tab">⛏️ Майнинг</button>
+      <button id="airdropsTab" class="win95-btn bevel-out invest-tab">🎁 Аирдропы</button>
+      <button id="optionsTab" class="win95-btn bevel-out invest-tab">📊 Опционы</button>
     </div>
 
+    <!-- Фондовый рынок 2.0 -->
     <div id="marketSection" class="invest-section active">
-      <div class="market-hint bevel-in">Цены бумаг гуляют каждую секунду — иногда прилетают резкие новости. Комиссия брокера 1% с каждой сделки.</div>
+      <div class="market-hint bevel-in">
+        🤖 ИИ-торговля предсказывает движение акций. Дивиденды выплачиваются каждые 30 секунд.
+        Индекс Nasdaq-подобный показывает общее состояние рынка.
+      </div>
+      <div class="market-index bevel-in">
+        <span>📊 Индекс TECH-100: <strong id="marketIndex">0</strong></span>
+        <span>Изменение: <span id="marketIndexChange">0%</span></span>
+      </div>
       <div id="stockList" class="stock-list"></div>
     </div>
 
+    <!-- Недвижимость -->
     <div id="realtySection" class="invest-section">
-      <div class="market-hint bevel-in">Объекты дают пассивный доход каждую секунду, но требуют содержания. Цена растёт с каждой следующей покупкой того же типа.</div>
+      <div class="market-hint bevel-in">
+        🏡 Цены на недвижимость колеблются как акции. Сдавайте в аренду (жилая/промышленная),
+        улучшайте объекты для повышения дохода. Перепродавайте с прибылью!
+      </div>
       <div id="propertyList" class="property-list"></div>
+    </div>
+
+    <!-- Криптовалюты -->
+    <div id="cryptoSection" class="invest-section">
+      <div class="market-hint bevel-in">
+        ₿ Крипторынок с высокой волатильностью. Комиссия за перевод: 0.5% (мин. 1💰).
+        Торгуйте, зарабатывайте на разнице курсов.
+      </div>
+      <div id="cryptoList" class="crypto-list"></div>
+      <div class="crypto-wallet-section bevel-in">
+        <span>💳 Криптокошелёк: <span id="cryptoWalletBalance">0</span>💰</span>
+        <span>Комиссия за перевод: 0.5% (мин. 1💰)</span>
+      </div>
+    </div>
+
+    <!-- Майнинг -->
+    <div id="miningSection" class="invest-section">
+      <div class="market-hint bevel-in">
+        ⛏️ Майнинг криптовалюты требует оборудования и фокуса.
+        Чем мощнее оборудование — тем выше доход.
+      </div>
+      <div id="miningList" class="mining-list"></div>
+    </div>
+
+    <!-- Аирдропы -->
+    <div id="airdropsSection" class="invest-section">
+      <div class="market-hint bevel-in">
+        🎁 Получайте бесплатные токены за активность! Аирдропы доступны каждый час.
+        Чем выше ваш уровень активности — тем больше награда.
+      </div>
+      <div id="airdropsList" class="airdrops-list"></div>
+    </div>
+
+    <!-- Опционы -->
+    <div id="optionsSection" class="invest-section">
+      <div class="market-hint bevel-in">
+        📊 Ставки на рост или падение акций. Выберите актив, направление и сумму.
+        При правильном прогнозе вы получаете прибыль x2!
+      </div>
+      <div id="optionsList" class="options-list"></div>
     </div>
 
   </div>

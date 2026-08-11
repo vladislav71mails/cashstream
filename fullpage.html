@@ -53,6 +53,9 @@
       <button class="desktop-icon" data-window="invest">
         <span class="icon-glyph">📈</span><span class="icon-label">Инвестиции.exe</span>
       </button>
+      <button class="desktop-icon" data-window="bank">
+  <span class="icon-glyph">🏦</span><span class="icon-label">Банк.exe</span>
+</button>
       <div class="desktop-hint">Дважды кликните по значку, чтобы запустить программу</div>
     </div>
 
@@ -121,7 +124,13 @@
     <div class="win95-body invest-body">
       <iframe id="investFrame" src="invest.html" class="program-frame"></iframe>
     </div>
-  </template>
+</template>
+
+<template id="tpl-bank">
+  <div class="win95-body bank-body">
+    <iframe id="bankFrame" src="bank.html" class="program-frame"></iframe>
+  </div>
+</template>
 
   <script src="shared.js"></script>
   <script src="fullpage.js"></script>

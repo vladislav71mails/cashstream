@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Банк — КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="bank.css">
+</head>
+<body>
+  <div class="bank-root">
+
+    <div class="bank-topbar bevel-in">
+      <div class="wallet">💰 <span id="walletCash">0</span></div>
+      <div class="bank-credit-score">⭐ Кредитный рейтинг: <span id="creditScore">A</span></div>
+      <div class="bank-debt">💳 Общий долг: <span id="totalDebt">0</span>💰</div>
+    </div>
+
+    <div class="bank-tabs">
+      <button id="depositsTab" class="win95-btn bevel-out bank-tab active">💰 Депозиты</button>
+      <button id="loansTab" class="win95-btn bevel-out bank-tab">💳 Кредиты</button>
+      <button id="mortgageTab" class="win95-btn bevel-out bank-tab">🏠 Ипотека</button>
+      <button id="historyTab" class="win95-btn bevel-out bank-tab">📊 История</button>
+    </div>
+
+    <!-- Вкладка "Депозиты" -->
+    <div id="depositsSection" class="bank-section active">
+      <div class="bank-hint bevel-in">
+        💡 Храните деньги на депозите и получайте пассивный доход. 
+        Чем дольше срок, тем выше процент. Досрочное снятие — без процентов.
+      </div>
+      
+      <!-- Выбор срока депозита -->
+      <div class="term-selector bevel-in">
+        <span class="term-label">📅 Срок депозита:</span>
+        <div class="term-buttons" id="depositTermButtons">
+          <button class="win95-btn bevel-out term-btn active" data-months="1">1 мес. (2%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="3">3 мес. (7%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="6">6 мес. (15%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="12">12 мес. (32%)</button>
+        </div>
+      </div>
+      
+      <div id="depositList" class="deposit-list"></div>
+      <div class="deposit-controls bevel-in">
+        <div class="deposit-row">
+          <span>Сумма: </span>
+          <input type="number" id="depositAmount" value="100" min="1" class="win95-input">
+          <button id="depositAddBtn" class="win95-btn bevel-out bank-btn-success">➕ Пополнить</button>
+          <button id="depositWithdrawBtn" class="win95-btn bevel-out bank-btn-danger">➖ Снять</button>
+        </div>
+        <div class="deposit-stats">
+          Всего на депозитах: <span id="totalDeposits">0</span>💰 · 
+          Доход в секунду: <span id="depositIncome">0</span>💰
+        </div>
+      </div>
+    </div>
+
+    <!-- Вкладка "Кредиты" -->
+    <div id="loansSection" class="bank-section">
+      <div class="bank-hint bevel-in">
+        ⚠️ Быстрые кредиты под высокий процент. Помогают в кризис, но 
+        усложняют финансовую нагрузку. Погашайте досрочно, чтобы сэкономить.
+      </div>
+      
+      <!-- Выбор срока кредита -->
+      <div class="term-selector bevel-in">
+        <span class="term-label">📅 Срок кредита:</span>
+        <div class="term-buttons" id="loanTermButtons">
+          <button class="win95-btn bevel-out term-btn active" data-months="1">1 мес. (15%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="3">3 мес. (40%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="6">6 мес. (75%)</button>
+          <button class="win95-btn bevel-out term-btn" data-months="12">12 мес. (150%)</button>
+        </div>
+      </div>
+      
+      <div id="loanList" class="loan-list"></div>
+      <div class="loan-controls bevel-in">
+        <div class="loan-row">
+          <span>Сумма: </span>
+          <input type="number" id="loanAmount" value="500" min="100" step="100" class="win95-input">
+          <span id="loanMaxHint" style="font-size:11px;color:#666;"></span>
+          <button id="takeLoanBtn" class="win95-btn bevel-out bank-btn-warning">💰 Взять кредит</button>
+        </div>
+        <div class="loan-stats">
+          Активных кредитов: <span id="activeLoans">0</span> · 
+          Ежемесячный платёж: <span id="monthlyPayment">0</span>💰
+        </div>
+      </div>
+    </div>
+
+    <!-- Вкладка "Ипотека" -->
+    <div id="mortgageSection" class="bank-section">
+      <div class="bank-hint bevel-in">
+        🏡 Покупайте недвижимость в ипотеку! Первоначальный взнос от 20%, 
+        срок до 20 игровых месяцев. Недвижимость сразу приносит доход, 
+        но вы платите ежемесячные взносы.
+      </div>
+      <div id="mortgageList" class="mortgage-list"></div>
+    </div>
+
+    <!-- Вкладка "История" -->
+    <div id="historySection" class="bank-section">
+      <div class="bank-hint bevel-in">
+        📋 Все финансовые операции за последнее время.
+      </div>
+      <div class="bank-history-log bevel-in" id="bankHistoryLog"></div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="bank.js"></script>
+</body>
+</html>

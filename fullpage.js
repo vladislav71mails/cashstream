@@ -13,10 +13,11 @@ const WM = (function () {
     quests:  { title: '📋 Квесты дня',      tpl: 'tpl-quests', w: 300, h: 480 },
     work:    { title: '💻 Рабочая зона',     tpl: 'tpl-work',   w: 420, h: 480 },
     casino:  { title: '🎰 Перерыв',          tpl: 'tpl-casino', w: 480, h: 560 },
-    invest:  { title: '📈 Инвестиции',       tpl: 'tpl-invest', w: 560, h: 520 }
+    invest:  { title: '📈 Инвестиции',       tpl: 'tpl-invest', w: 560, h: 520 },
+    bank:    { title: '🏦 Банк',             tpl: 'tpl-bank',   w: 600, h: 540 }
   };
   const ORDER = ['quests', 'work', 'casino', 'invest'];
-  const AUTO_OPEN = ['quests', 'work', 'casino'];
+  const AUTO_OPEN = ['quests', 'work'];
 
   const windows = {}; // id -> { el, taskbarBtn, minimized, opened }
   let topZ = 10;
