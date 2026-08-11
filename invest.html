@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Инвестиции — Рынок Айти</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="invest.css">
+</head>
+<body>
+  <div class="invest-root">
+
+    <div class="invest-topbar bevel-in">
+      <div class="wallet">💰 <span id="walletCash">0</span></div>
+      <div class="portfolio-value">📦 Портфель: <span id="portfolioValue">0</span></div>
+      <div class="realty-income">🏠 Доход недвижимости: <span id="realtyIncome">0</span>/с</div>
+    </div>
+
+    <div class="invest-tabs">
+      <button id="marketTab" class="win95-btn bevel-out invest-tab active">📈 Рынок Айти</button>
+      <button id="realtyTab" class="win95-btn bevel-out invest-tab">🏠 Недвижимость</button>
+    </div>
+
+    <div id="marketSection" class="invest-section active">
+      <div class="market-hint bevel-in">Цены бумаг гуляют каждую секунду — иногда прилетают резкие новости. Комиссия брокера 1% с каждой сделки.</div>
+      <div id="stockList" class="stock-list"></div>
+    </div>
+
+    <div id="realtySection" class="invest-section">
+      <div class="market-hint bevel-in">Объекты дают пассивный доход каждую секунду, но требуют содержания. Цена растёт с каждой следующей покупкой того же типа.</div>
+      <div id="propertyList" class="property-list"></div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="invest.js"></script>
+</body>
+</html>

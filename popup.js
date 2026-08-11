@@ -18,6 +18,7 @@ async function init() {
     document.getElementById('tapBtn').addEventListener('click', onTap);
     document.getElementById('openFull').addEventListener('click', openFullPage);
     document.getElementById('openCasino').addEventListener('click', () => openFullPage('casino'));
+    document.getElementById('openInvest').addEventListener('click', () => openFullPage('invest'));
   } catch (err) {
     CS.reportFatalError(err);
   }
@@ -126,6 +127,16 @@ function render() {
 
   document.getElementById('internCountPopup').textContent = state.interns;
   document.getElementById('internIncomePopup').textContent = (state.interns * CS.CONFIG.INTERN_INCOME_PER_TICK).toFixed(1);
+  document.getElementById('realtyIncomePopup').textContent =
+    Math.max(0, CS.propertyIncomeTotal(state) - CS.propertyUpkeepTotal(state)).toFixed(1);
+
+  const debtMini = document.getElementById('debtMini');
+  if (state.debt > 0) {
+    debtMini.hidden = false;
+    document.getElementById('debtValuePopup').textContent = Math.round(state.debt);
+  } else {
+    debtMini.hidden = true;
+  }
 }
 
 init();

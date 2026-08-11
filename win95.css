@@ -20,6 +20,9 @@
   --maroon: #7a1c1c;
   --paper: #f2efe4;
   --ink: #1a1a1a;
+  --up: #0a8a3f;
+  --down: #b8202a;
+  --gold: #a8790a;
 }
 
 * { box-sizing: border-box; }
@@ -111,6 +114,13 @@ body {
   color: #000;
   display: flex; align-items: center; justify-content: center;
   line-height: 0;
+  cursor: pointer;
+}
+.win95-titlebar .dots span:active {
+  border-top: 1px solid var(--dark);
+  border-left: 1px solid var(--dark);
+  border-right: 1px solid var(--hi);
+  border-bottom: 1px solid var(--hi);
 }
 
 .win95-body { padding: 8px; flex: 1; min-height: 0; }
@@ -135,6 +145,7 @@ body {
 .win95-gauge.focus > i { color: #1084d0; }
 .win95-gauge.burnout > i { color: var(--maroon); }
 .win95-gauge.quest > i { color: var(--ledger-dim); }
+.win95-gauge.rent > i { color: var(--gold); }
 .win95-gauge .gauge-label {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -214,3 +225,12 @@ body {
 ::-webkit-scrollbar { width: 16px; }
 ::-webkit-scrollbar-track { background: var(--face); }
 ::-webkit-scrollbar-thumb { background: var(--face); border: 1px solid var(--shadow); }
+
+/* --- Общие утилиты для биржи/финансов (используются в invest.html и панели) --- */
+.up { color: var(--up); font-weight: bold; }
+.down { color: var(--down); font-weight: bold; }
+.debt-badge { color: #fff; background: var(--maroon) !important; }
+.debt-badge.bevel-out {
+  border-top-color: #c96a6a;
+  border-left-color: #c96a6a;
+}

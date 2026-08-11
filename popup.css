@@ -22,8 +22,17 @@ body { width: 320px; }
   font-size: 10px;
   text-align: center;
   padding: 4px 6px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--ledger-dim);
+}
+
+.debt-mini {
+  font-size: 10px;
+  text-align: center;
+  padding: 4px 6px;
+  margin-bottom: 8px;
+  color: #fff;
+  background: var(--maroon) !important;
 }
 
 .quest-box { padding: 8px; margin-bottom: 8px; }

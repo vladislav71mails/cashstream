@@ -1,14 +1,13 @@
 html, body { height: 100%; }
 
 .desktop {
+  position: relative;
   min-height: calc(100vh - 34px);
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  overflow: hidden;
 }
 
-.panel-window { width: 100%; }
+.panel-window { width: 100%; margin-bottom: 14px; position: relative; z-index: 1; }
 .panel-body {
   display: flex;
   align-items: center;
@@ -19,18 +18,94 @@ html, body { height: 100%; }
 .combo-badge { margin-left: auto; color: #7a1c1c; }
 .panel-gauge { width: 160px; }
 .panel-gauge label { font-size: 10px; display: block; margin-bottom: 2px; }
-
-.columns {
-  display: flex;
-  gap: 14px;
-  flex: 1;
-  align-items: flex-start;
+.debt-badge { animation: debtPulse 1.2s ease-in-out infinite; }
+@keyframes debtPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
 }
 
-.col-quests { width: 26%; min-width: 260px; }
-.col-work { flex: 1; min-width: 360px; }
-.col-casino { width: 32%; min-width: 380px; }
+/* ---- Значки рабочего стола ---- */
+.desktop-icons {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 4px 2px;
+}
+.desktop-icon {
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px dashed transparent;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 2px;
+}
+.desktop-icon:hover,
+.desktop-icon:focus {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.08);
+  outline: none;
+}
+.desktop-icon:active { background: rgba(255,255,255,0.18); }
+.desktop-icon .icon-glyph {
+  font-size: 34px;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.4));
+}
+.desktop-icon .icon-label {
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
+  text-align: center;
+}
+.desktop-hint {
+  align-self: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+  margin-left: 8px;
+}
 
+/* ---- Плавающие окна-программы ---- */
+.window-layer { position: absolute; inset: 0; pointer-events: none; }
+.floating-window {
+  position: absolute;
+  pointer-events: auto;
+  min-width: 300px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+.floating-window.hidden-window { display: none; }
+.floating-window .win95-titlebar { cursor: move; }
+.floating-window .win95-body { overflow: auto; flex: 1; min-height: 0; }
+.floating-window.dragging { opacity: 0.92; }
+
+/* ---- Таскбар: кнопки открытых окон ---- */
+.taskbar-windows { display: flex; gap: 4px; overflow-x: auto; }
+.taskbar-win-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.taskbar-win-btn.focused {
+  border-top: 2px solid var(--dark);
+  border-left: 2px solid var(--dark);
+  border-right: 2px solid var(--hi);
+  border-bottom: 2px solid var(--hi);
+  background: var(--paper);
+}
+
+/* ---- Содержимое окон (квесты/работа) ---- */
 .quest-title { font-weight: bold; color: var(--ledger-dim); margin-bottom: 8px; font-size: 13px; }
 
 .quest-steps { margin: 0 0 10px 0; padding-left: 20px; font-size: 12px; }
@@ -49,17 +124,21 @@ html, body { height: 100%; }
 .intern-box .win95-btn:disabled { opacity: 0.6; }
 
 .history-title { font-size: 12px; font-weight: bold; margin-bottom: 4px; }
-.history-log { height: 220px; overflow-y: auto; padding: 6px; font-size: 11px; }
+.history-log { height: 160px; overflow-y: auto; padding: 6px; font-size: 11px; }
 .history-item { padding: 4px 2px; border-bottom: 1px dotted var(--shadow); }
 .history-item.casino-win { color: var(--ledger-dim); }
 .history-item.casino-loss { color: var(--maroon); }
+.history-item.market { color: #1a4f8f; }
+.history-item.realty { color: #6a4a12; }
+.history-item.rent { color: var(--gold); }
+.history-item.debt { color: var(--maroon); font-weight: bold; }
 
 .work-body { display: flex; flex-direction: column; height: 100%; }
 .work-instruction { font-size: 14px; font-weight: bold; margin-bottom: 10px; min-height: 20px; }
 .work-zone {
   position: relative;
   flex: 1;
-  min-height: 320px;
+  min-height: 260px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -118,16 +197,15 @@ html, body { height: 100%; }
   cursor: default;
 }
 
-.casino-body { padding: 0; }
-.casino-frame {
+.casino-body, .invest-body { padding: 0; }
+.program-frame {
   width: 100%;
-  height: 780px;
+  height: 100%;
   border: none;
   display: block;
 }
 
-@media (max-width: 1100px) {
-  .columns { flex-direction: column; }
-  .col-quests, .col-work, .col-casino { width: 100%; min-width: 0; }
-  .casino-frame { height: 900px; }
+@media (max-width: 700px) {
+  .floating-window { min-width: 260px !important; left: 8px !important; width: calc(100vw - 32px) !important; }
+  .panel-gauge { width: 120px; }
 }
