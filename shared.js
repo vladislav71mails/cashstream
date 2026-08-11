@@ -112,7 +112,9 @@ CS.loadState = function () {
           CS.saveState(fresh);
           resolve(fresh);
         } else {
-          resolve(stored);
+          const normalized = CS.normalizeState(stored);
+          if (normalized !== stored) CS.saveState(normalized);
+          resolve(normalized);
         }
       });
     });
@@ -120,12 +122,56 @@ CS.loadState = function () {
   return new Promise((resolve) => {
     try {
       const raw = localStorage.getItem(CS.CONFIG.STORAGE_KEY);
-      if (raw) { resolve(JSON.parse(raw)); return; }
+      if (raw) {
+        const normalized = CS.normalizeState(JSON.parse(raw));
+        CS.saveState(normalized);
+        resolve(normalized);
+        return;
+      }
     } catch (e) { /* ignore corrupt storage, fall through to fresh state */ }
     const fresh = CS.freshState();
     CS.saveState(fresh);
     resolve(fresh);
   });
+};
+
+// Дополняет старые сохранённые состояния недостающими полями (например,
+// после добавления новой механики вроде стажёров) и лечит NaN, если он
+// уже успел просочиться в сохранённое состояние.
+CS.normalizeState = function (stored) {
+  let changed = false;
+  const state = Object.assign({}, CS.DEFAULT_STATE, stored);
+  state.totalsToday = Object.assign({}, CS.DEFAULT_STATE.totalsToday, stored.totalsToday || {});
+
+  const numericFields = ['cash', 'focus', 'burnout', 'level', 'xp', 'clickValue', 'stepProgress', 'interns'];
+  numericFields.forEach((key) => {
+    if (typeof state[key] !== 'number' || Number.isNaN(state[key])) {
+      state[key] = CS.DEFAULT_STATE[key];
+      changed = true;
+    }
+  });
+  ['taps', 'chains', 'cash'].forEach((key) => {
+    if (typeof state.totalsToday[key] !== 'number' || Number.isNaN(state.totalsToday[key])) {
+      state.totalsToday[key] = 0;
+      changed = true;
+    }
+  });
+
+  if (!Array.isArray(state.history)) { state.history = []; changed = true; }
+  if (!Array.isArray(state.puzzleOrder)) { state.puzzleOrder = []; changed = true; }
+  if (!Array.isArray(state.findLayout)) { state.findLayout = []; changed = true; }
+
+  if (state.chainId === null || state.chainId === undefined || !CS.QUEST_POOL[state.chainId]) {
+    CS.assignChain(state, Math.floor(Math.random() * CS.QUEST_POOL.length));
+    changed = true;
+  } else if (!CS.currentChain(state).steps[state.stepIndex]) {
+    state.stepIndex = 0;
+    state.stepProgress = 0;
+    CS.prepareStepLayout(state, CS.currentChain(state).steps[0]);
+    changed = true;
+  }
+
+  return changed ? state : stored;
 };
 
 CS.saveState = function (state) {
