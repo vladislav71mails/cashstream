@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>1С:Предприятие — Отчетность.exe — КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="stats.css">
+</head>
+<body>
+
+  <!-- Заставка при запуске, как у настоящей 1С -->
+  <div class="onec-boot" id="onecBoot">
+    <div class="onec-boot-box">
+      <div class="onec-boot-logo">1С</div>
+      <div class="onec-boot-title">1С:Предприятие 8.3</div>
+      <div class="onec-boot-sub">КЭШ.СТРИМ: Учёт и отчётность (учебная версия) · <span id="onecBootRelease">8.3.10</span></div>
+      <div class="onec-boot-log" id="onecBootLog"></div>
+      <div class="onec-boot-progress"><i id="onecBootFill"></i></div>
+    </div>
+  </div>
+
+  <div class="onec-root">
+
+    <!-- Заголовок 1С -->
+    <div class="onec-header bevel-out">
+      <div class="onec-logo">1С</div>
+      <div class="onec-header-text">
+        <div class="onec-product">1С:Предприятие 8.3 (учебная версия)</div>
+        <div class="onec-subtitle">Конфигурация «КЭШ.СТРИМ: Учёт и отчётность» · релиз <span id="onecVersion">—</span></div>
+      </div>
+      <div class="onec-status" id="onecStatusBadge">НЕ ГОТОВО</div>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="onec-tabs">
+      <button class="onec-tab active" data-tab="setup">⚙ Настройка 1С</button>
+      <button class="onec-tab" data-tab="reg">📋 Регистрация</button>
+      <button class="onec-tab" data-tab="report">📊 Отчётность</button>
+      <button class="onec-tab" data-tab="stats">📈 Статистика</button>
+    </div>
+
+    <!-- ===== ВКЛАДКА: НАСТРОЙКА ===== -->
+    <div class="onec-panel active" id="tab-setup">
+      <div class="onec-section bevel-in">
+        <div class="onec-section-title">Установка и обновление платформы</div>
+        <div class="checklist" id="setupChecklist">
+          <!-- заполняется JS -->
+        </div>
+        <div class="onec-actions">
+          <button class="win95-btn bevel-out" id="btnInstall">Установить 1С</button>
+          <button class="win95-btn bevel-out" id="btnUpdate">Обновить до актуального релиза</button>
+          <button class="win95-btn bevel-out" id="btnPatch">Установить патчи</button>
+          <button class="win95-btn bevel-out" id="btnDirs">Загрузить справочники</button>
+        </div>
+        <div class="onec-log bevel-in" id="setupLog"></div>
+      </div>
+
+      <div class="onec-section bevel-in">
+        <div class="onec-section-title">Лицензии (обязательно для отчётности)</div>
+        <div class="license-grid" id="licenseGrid">
+          <!-- заполняется JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: РЕГИСТРАЦИЯ ===== -->
+    <div class="onec-panel" id="tab-reg">
+      <div class="onec-section bevel-in">
+        <div class="onec-section-title">Регистрация субъекта предпринимательства</div>
+        <p class="hint">Работать и зарабатывать можно и без регистрации. Но чем больше у вас пассивного дохода
+          (стажёры, недвижимость) — тем выше риск внеплановой проверки ФНС и штрафа. Регистрация снимает этот риск
+          и даёт реальные бонусы (см. таблицу ниже).</p>
+        <div class="reg-types">
+          <label class="reg-card bevel-out">
+            <input type="radio" name="regType" value="self" id="regSelf">
+            <span class="reg-title">Самозанятый</span>
+            <span class="reg-desc">НПД 6%. Быстро, но есть лимит дохода.</span>
+            <span class="reg-price">Регистрация: 50💰</span>
+          </label>
+          <label class="reg-card bevel-out">
+            <input type="radio" name="regType" value="ip" id="regIp">
+            <span class="reg-title">ИП</span>
+            <span class="reg-desc">УСН 6%. Без лимита дохода и стажёров.</span>
+            <span class="reg-price">Госпошлина: 200💰</span>
+          </label>
+          <label class="reg-card bevel-out">
+            <input type="radio" name="regType" value="ooo" id="regOoo">
+            <span class="reg-title">ООО</span>
+            <span class="reg-desc">Налог 20%. Максимум возможностей.</span>
+            <span class="reg-price">Госпошлина: 500💰 + уставный 1000💰</span>
+          </label>
+        </div>
+        <div class="reg-form" id="regForm" style="display:none;">
+          <div class="form-row">
+            <label>ФИО / Наименование:</label>
+            <input type="text" id="regName" class="win95-input" placeholder="Иванов И.И. / ООО «КэшСтрим»">
+          </div>
+          <div class="form-row">
+            <label>ИНН (генерируется):</label>
+            <input type="text" id="regInn" class="win95-input" readonly>
+          </div>
+          <div class="form-row" id="ogrnRow" style="display:none;">
+            <label>ОГРН / ОГРНИП:</label>
+            <input type="text" id="regOgrn" class="win95-input" readonly>
+          </div>
+          <button class="win95-btn bevel-out" id="btnRegister">Подать заявление на регистрацию</button>
+        </div>
+        <div class="reg-status bevel-in" id="regStatus">Статус: не зарегистрирован</div>
+      </div>
+
+      <div class="onec-section bevel-in biz-perks">
+        <div class="onec-section-title">📊 Зачем регистрироваться?</div>
+        <ul class="perks-list">
+          <li><b>❌ Без регистрации:</b> можно работать и кликать как обычно, но пассивный доход (стажёры,
+            недвижимость) копит риск внеплановой проверки ФНС — штраф и стресс. Максимум 1 «неофициальный»
+            стажёр. Банк не даст кредитный рейтинг выше <b>C</b>.</li>
+          <li><b>🧾 Самозанятый (НПД, 6%):</b> риска нет, пока доход в пределах лимита. Нанимать сотрудников
+            по закону всё ещё нельзя — лимит стажёров тот же. Банк — до рейтинга <b>A</b>.</li>
+          <li><b>💼 ИП (УСН, 6%):</b> без лимита дохода и без лимита на стажёров. Банк — без ограничения сверху.</li>
+          <li><b>🏢 ООО (налог на прибыль, 20%):</b> всё как у ИП, плюс доход с недвижимости <b>+10%</b> за счёт
+            корпоративной оптимизации.</li>
+        </ul>
+      </div>
+
+      <div class="onec-section bevel-in biz-risk-box" id="bizRiskBox"></div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: ОТЧЁТНОСТЬ ===== -->
+    <div class="onec-panel" id="tab-report">
+      <div class="onec-section bevel-in">
+        <div class="onec-section-title">🔌 Связанные программы</div>
+        <p class="hint">Настройка ЭЦП/СКЗИ и установка приложений — отдельные программы на рабочем столе,
+          как в реальной 1С-инфраструктуре.</p>
+        <div class="onec-actions">
+          <button class="win95-btn bevel-out" id="btnOpenCrypto">🔐 Открыть ЭЦП и СКЗИ.exe</button>
+          <button class="win95-btn bevel-out" id="btnOpenStore">🛒 Открыть Магазин приложений.exe</button>
+        </div>
+      </div>
+
+      <div class="onec-section bevel-in">
+        <div class="onec-section-title">Формирование и сдача отчётности в ФНС</div>
+        <div class="readiness" id="readinessBox">
+          <!-- чеклист готовности -->
+        </div>
+        <div class="report-summary bevel-in">
+          <div class="report-row"><span>Налогооблагаемый доход:</span><span id="repIncome">0</span></div>
+          <div class="report-row"><span>Ставка:</span><span id="repRate">13%</span></div>
+          <div class="report-row"><span>Налог к уплате:</span><span id="repTax">0</span></div>
+          <div class="report-row"><span>Уже уплачено:</span><span id="repPaid">0</span></div>
+          <div class="report-row highlight"><span>К доплате / переплате:</span><span id="repRemain">0</span></div>
+        </div>
+        <div class="onec-actions">
+          <button class="win95-btn bevel-out" id="btnFormReport">Сформировать декларацию</button>
+          <button class="win95-btn bevel-out" id="btnPayTax">Оплатить налог</button>
+          <button class="win95-btn bevel-out primary" id="btnSubmitReport">✉ Отправить в налоговую (ЭЦП)</button>
+        </div>
+        <div class="onec-log bevel-in" id="reportLog"></div>
+      </div>
+    </div>
+
+    <!-- ===== ВКЛАДКА: СТАТИСТИКА ===== -->
+    <div class="onec-panel" id="tab-stats">
+      <div class="stats-topbar bevel-in">
+        <div class="stats-title">📊 Оперативная статистика</div>
+        <div class="stats-period">
+          <button class="win95-btn bevel-out period-btn active" data-period="day">День</button>
+          <button class="win95-btn bevel-out period-btn" data-period="week">Неделя</button>
+          <button class="win95-btn bevel-out period-btn" data-period="month">Месяц</button>
+          <button class="win95-btn bevel-out period-btn" data-period="all">Всё время</button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stats-card bevel-in">
+          <div class="stats-card-title">💰 Баланс</div>
+          <div class="stats-card-value" id="statsBalance">0</div>
+        </div>
+        <div class="stats-card bevel-in">
+          <div class="stats-card-title">📈 Доход</div>
+          <div class="stats-card-value" id="statsIncome">0</div>
+        </div>
+        <div class="stats-card bevel-in">
+          <div class="stats-card-title">💳 Расходы</div>
+          <div class="stats-card-value" id="statsExpenses">0</div>
+        </div>
+        <div class="stats-card bevel-in">
+          <div class="stats-card-title">📊 Прибыль</div>
+          <div class="stats-card-value" id="statsProfit">0</div>
+        </div>
+      </div>
+      <div class="stats-charts">
+        <div class="stats-chart-container bevel-in">
+          <div class="stats-chart-title">Рост капитала</div>
+          <canvas id="capitalChart" width="500" height="160"></canvas>
+        </div>
+      </div>
+      <div class="stats-details bevel-in">
+        <div class="stats-details-title">Сданные отчёты: <span id="reportsCount">0</span> · Последний: <span id="lastReportDate">—</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="stats.js"></script>
+</body>
+</html>

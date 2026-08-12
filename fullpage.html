@@ -8,6 +8,17 @@
 </head>
 <body>
 
+  <!-- Загрузка Windows 95 / КЭШ.СТРИМ -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-inner">
+      <div class="boot-logo">💻</div>
+      <div class="boot-title">КЭШ.СТРИМ</div>
+      <div class="boot-sub">Starting Windows 95…</div>
+      <div class="boot-bar bevel-in"><i id="bootFill"></i></div>
+      <div class="boot-log" id="bootLog">POST: memory OK</div>
+    </div>
+  </div>
+
   <div class="desktop" id="desktopRoot">
 
     <!-- Панель управления: всегда на виду, не закрывается -->
@@ -29,13 +40,14 @@
           <label>Выгорание</label>
           <div class="win95-gauge burnout"><i id="burnoutFill" style="width:0%"></i><span class="gauge-label" id="burnoutLabel">0</span></div>
         </div>
-        <div class="panel-gauge">
-          <label>Аренда через <span id="rentCountdown">30</span>с</label>
+        <div class="panel-gauge" id="rentGaugeBlock">
+          <label id="rentGaugeLabel">Аренда через <span id="rentCountdown">30</span>с</label>
           <div class="win95-gauge rent"><i id="rentFill" style="width:0%"></i><span class="gauge-label" id="rentLabel">0💰</span></div>
         </div>
 
         <div class="panel-badge bevel-out debt-badge" id="debtBadge" hidden>⚠️ Долг: <span id="debtValue">0</span>💰</div>
         <div class="panel-badge bevel-out combo-badge">🔥 Комбо x<span id="comboValue">1.0</span></div>
+        <div class="panel-badge bevel-out grace-badge" id="graceBadge" hidden>🛡️ Льгота: <span id="graceValue">0</span>с</div>
       </div>
     </div>
 
@@ -56,6 +68,15 @@
       <button class="desktop-icon" data-window="bank">
   <span class="icon-glyph">🏦</span><span class="icon-label">Банк.exe</span>
 </button>
+<button class="desktop-icon" data-window="stats">
+  <span class="icon-glyph">📊</span><span class="icon-label">Отчетность.exe</span>
+</button>
+<button class="desktop-icon" data-window="store">
+  <span class="icon-glyph">🛒</span><span class="icon-label">Магазин.exe</span>
+</button>
+      <button class="desktop-icon" data-window="settings">
+        <span class="icon-glyph">⚙️</span><span class="icon-label">Настройка.exe</span>
+      </button>
       <div class="desktop-hint">Дважды кликните по значку, чтобы запустить программу</div>
     </div>
 
@@ -65,15 +86,72 @@
   </div>
 
   <div class="win95-taskbar">
-    <button class="win95-btn bevel-out start-btn">🪟 СТАРТ</button>
+    <button type="button" class="win95-btn bevel-out start-btn" id="startBtn">🪟 СТАРТ</button>
+    <div class="start-menu" id="startMenu" hidden>
+      <div class="start-menu-side">КЭШ.СТРИМ</div>
+      <div class="start-menu-items">
+        <button type="button" class="start-item" data-start="settings">⚙️ Настройка компьютера</button>
+        <button type="button" class="start-item" data-start="achievements">🏆 Достижения</button>
+        <button type="button" class="start-item" data-start="store">🛒 Магазин</button>
+        <div class="start-sep"></div>
+        <button type="button" class="start-item" data-start="quests">📋 Задачи</button>
+        <button type="button" class="start-item" data-start="work">💻 Работа</button>
+        <button type="button" class="start-item" data-start="bank">🏦 Банк</button>
+      </div>
+    </div>
     <div class="taskbar-sep"></div>
     <span class="taskbar-app bevel-out">💼 КЭШ.СТРИМ.exe</span>
     <div class="taskbar-sep"></div>
     <div class="taskbar-windows" id="taskbarWindows"></div>
     <div class="tray">
+      <button type="button" class="tray-mail" id="trayMail" title="Почта — непрочитанные" hidden>
+        ✉️<span class="tray-mail-badge" id="trayMailBadge">0</span>
+      </button>
       <span title="Сегодня заработано">📈 <span id="todayCash">0</span></span>
       <span title="Квестов завершено">✅ <span id="todayChains">0</span></span>
       <span id="clock">00:00</span>
+    </div>
+  </div>
+
+  <!-- Всплывающие уведомления о почте (правый нижний угол над таскбаром) -->
+  <div class="mail-toast-stack" id="mailToastStack" aria-live="polite"></div>
+  <!-- Тосты достижений -->
+  <div class="ach-toast-stack" id="achToastStack" aria-live="polite"></div>
+
+  <!-- Оверлей обучения -->
+  <div class="tutorial-overlay" id="tutorialOverlay" hidden>
+    <div class="win95-window tutorial-window">
+      <div class="win95-titlebar">
+        <span>🎓 Обучение.exe</span>
+        <div class="dots"><span id="tutorialSkipTitle" title="Пропустить">×</span></div>
+      </div>
+      <div class="win95-body tutorial-body">
+        <div class="tutorial-step-num" id="tutorialStepNum">Шаг 1/5</div>
+        <div class="tutorial-title" id="tutorialTitle">—</div>
+        <div class="tutorial-text" id="tutorialText">—</div>
+        <div class="tutorial-actions">
+          <button type="button" class="win95-btn bevel-out" id="tutorialSkipBtn">Пропустить</button>
+          <button type="button" class="win95-btn bevel-out primary" id="tutorialNextBtn">Далее</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Оверлей случайного события -->
+  <div class="event-overlay" id="eventOverlay" hidden>
+    <div class="win95-window event-window">
+      <div class="win95-titlebar" id="eventTitlebar">
+        <span id="eventWinTitle">⚡ Событие.exe</span>
+        <div class="dots"><span title="Нужно выбрать">_</span></div>
+      </div>
+      <div class="win95-body event-body">
+        <div class="event-kind" id="eventKind">Кризис</div>
+        <div class="event-icon" id="eventIcon">⚡</div>
+        <div class="event-title" id="eventTitle">—</div>
+        <div class="event-text" id="eventText">—</div>
+        <div class="event-choices" id="eventChoices"></div>
+        <div class="event-hint" id="eventHint"></div>
+      </div>
     </div>
   </div>
 
@@ -129,6 +207,76 @@
 <template id="tpl-bank">
   <div class="win95-body bank-body">
     <iframe id="bankFrame" src="bank.html" class="program-frame"></iframe>
+  </div>
+</template>
+<template id="tpl-stats">
+  <div class="win95-body stats-body">
+    <iframe id="statsFrame" src="stats.html" class="program-frame"></iframe>
+  </div>
+</template>
+
+<template id="tpl-store">
+  <div class="win95-body store-body">
+    <iframe id="storeFrame" src="store.html" class="program-frame"></iframe>
+  </div>
+</template>
+
+<template id="tpl-crypto">
+  <div class="win95-body crypto-body">
+    <iframe id="cryptoFrame" src="crypto.html" class="program-frame"></iframe>
+  </div>
+</template>
+
+<template id="tpl-browser">
+  <div class="win95-body browser-body">
+    <iframe id="browserFrame" src="browser.html" class="program-frame"></iframe>
+  </div>
+</template>
+
+<template id="tpl-mail">
+  <div class="win95-body mail-body-frame">
+    <iframe id="mailFrame" src="mail.html" class="program-frame"></iframe>
+  </div>
+</template>
+
+<template id="tpl-achievements">
+  <div class="win95-body achievements-body">
+    <div class="ach-header bevel-in">
+      <span>🏆 Трофеи</span>
+      <span class="ach-count" id="achCount">0 / 0</span>
+    </div>
+    <div class="ach-list" id="achList"></div>
+  </div>
+</template>
+
+<template id="tpl-settings">
+  <div class="win95-body settings-body">
+    <div class="settings-title">⚙️ Панель управления</div>
+    <div class="settings-section bevel-in">
+      <div class="settings-row">
+        <label><input type="checkbox" id="setSound" /> Звуки кликов и событий</label>
+      </div>
+      <div class="settings-row">
+        <label>Громкость</label>
+        <input type="range" id="setVolume" min="0" max="100" value="45" />
+        <span id="setVolumeLabel">45%</span>
+      </div>
+      <div class="settings-row">
+        <button type="button" class="win95-btn bevel-out" id="setTestSound">Тест звука</button>
+      </div>
+    </div>
+    <div class="settings-section bevel-in">
+      <div class="settings-row">
+        <label><input type="checkbox" id="setBootAnim" /> Анимация загрузки рабочего стола</label>
+      </div>
+      <div class="settings-hint">Похожа на старт Windows 95 при открытии fullpage.</div>
+    </div>
+    <div class="settings-section bevel-in">
+      <div class="settings-hint">Система: КЭШ.СТРИМ · Win95 UI · Web Audio</div>
+      <div class="settings-row">
+        <button type="button" class="win95-btn bevel-out" id="setReplayBoot">Показать загрузку снова</button>
+      </div>
+    </div>
   </div>
 </template>
 

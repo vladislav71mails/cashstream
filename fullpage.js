@@ -14,7 +14,14 @@ const WM = (function () {
     work:    { title: '💻 Рабочая зона',     tpl: 'tpl-work',   w: 420, h: 480 },
     casino:  { title: '🎰 Перерыв',          tpl: 'tpl-casino', w: 480, h: 560 },
     invest:  { title: '📈 Инвестиции',       tpl: 'tpl-invest', w: 560, h: 520 },
-    bank:    { title: '🏦 Банк',             tpl: 'tpl-bank',   w: 600, h: 540 }
+    stats:   { title: '📊 Отчетность',       tpl: 'tpl-stats',  w: 680, h: 600 },
+    bank:    { title: '🏦 Банк',             tpl: 'tpl-bank',   w: 600, h: 540 },
+    store:   { title: '🛒 Магазин приложений', tpl: 'tpl-store', w: 640, h: 560 },
+    crypto:  { title: '🔐 ЭЦП и СКЗИ',        tpl: 'tpl-crypto', w: 480, h: 480 },
+    browser: { title: '🌐 Браузер',          tpl: 'tpl-browser', w: 640, h: 520 },
+    mail:    { title: '✉️ Почта',            tpl: 'tpl-mail',   w: 720, h: 520 },
+    achievements: { title: '🏆 Достижения', tpl: 'tpl-achievements', w: 420, h: 520 },
+    settings: { title: '⚙️ Настройка компьютера', tpl: 'tpl-settings', w: 420, h: 420 }
   };
   const ORDER = ['quests', 'work', 'casino', 'invest'];
   const AUTO_OPEN = ['quests', 'work'];
@@ -76,6 +83,7 @@ const WM = (function () {
 
     const btn = document.createElement('button');
     btn.className = 'win95-btn bevel-out taskbar-win-btn';
+    btn.dataset.windowId = id;
     btn.textContent = def.title;
     btn.addEventListener('click', () => {
       const w = windows[id];
@@ -93,10 +101,18 @@ const WM = (function () {
 
   function open(id) {
     const w = get(id);
+    const wasOpen = w.opened && !w.minimized;
     w.el.classList.remove('hidden-window');
     w.opened = true;
     w.minimized = false;
     focus(id);
+    if (!wasOpen && typeof CS !== 'undefined' && CS.Audio) CS.Audio.play(state, 'open');
+    // мини-анимация «загрузки» приложения
+    w.el.classList.remove('app-booting');
+    void w.el.offsetWidth;
+    w.el.classList.add('app-booting');
+    setTimeout(() => w.el.classList.remove('app-booting'), 450);
+    if (id === 'settings') setTimeout(bindSettingsUI, 0);
   }
 
   function close(id) {
@@ -107,6 +123,7 @@ const WM = (function () {
     w.minimized = false;
     w.taskbarBtn.classList.remove('focused');
     if (focused === id) focused = null;
+    if (typeof CS !== 'undefined' && CS.Audio) CS.Audio.play(state, 'close');
   }
 
   function minimize(id) {
@@ -201,23 +218,223 @@ const WM = (function () {
 })();
 
 // ============================================================================
+// Значки установленных приложений: после установки программы в
+// Магазин.exe (store.html) на рабочем столе должен появиться её значок —
+// без перезагрузки страницы, сразу по приходу нового состояния.
+// ============================================================================
+function syncInstalledAppIcons() {
+  if (!state) return;
+  const container = document.getElementById('desktopIcons');
+  const hint = container.querySelector('.desktop-hint');
+  const installed = (state.apps && state.apps.installed) || [];
+
+  installed.forEach((id) => {
+    const def = CS.APP_CATALOG.find((a) => a.id === id);
+    if (!def || !def.addsIcon) return;
+    if (container.querySelector(`.desktop-icon[data-window="${id}"]`)) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'desktop-icon';
+    btn.dataset.window = id;
+    btn.setAttribute('tabindex', '0');
+    btn.innerHTML = `<span class="icon-glyph">${def.icon}</span><span class="icon-label">${def.name}.exe</span>`;
+
+    btn.addEventListener('dblclick', () => WM.open(id));
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.desktop-icon').forEach((i) => i.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); WM.open(id); }
+    });
+
+    container.insertBefore(btn, hint);
+  });
+
+  syncMailBadge();
+}
+
+// ============================================================================
+// Почта: бейдж непрочитанных + пуш-уведомления
+// ============================================================================
+const _shownMailPushIds = new Set();
+
+function syncMailBadge() {
+  if (!state) return;
+  const unread = CS.unreadMailCount(state, 'inbox');
+  const mailInstalled = CS.isAppInstalled(state, 'mail');
+
+  // Бейдж на иконке рабочего стола
+  const icon = document.querySelector('.desktop-icon[data-window="mail"]');
+  if (icon) {
+    let badge = icon.querySelector('.mail-badge');
+    if (unread > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'mail-badge';
+        icon.appendChild(badge);
+      }
+      badge.hidden = false;
+      badge.textContent = unread > 99 ? '99+' : String(unread);
+    } else if (badge) {
+      badge.hidden = true;
+    }
+  }
+
+  // Иконка в трее
+  const tray = document.getElementById('trayMail');
+  const trayBadge = document.getElementById('trayMailBadge');
+  if (tray && trayBadge) {
+    if (mailInstalled && unread > 0) {
+      tray.hidden = false;
+      trayBadge.textContent = unread > 99 ? '99+' : String(unread);
+      tray.title = `Почта: ${unread} непрочитанн${unread === 1 ? 'ое' : 'ых'}`;
+    } else {
+      tray.hidden = true;
+    }
+  }
+
+  // Подпись кнопки в таскбаре
+  document.querySelectorAll('#taskbarWindows .taskbar-win-btn').forEach((btn) => {
+    if (btn.textContent.indexOf('Почта') !== -1 || btn.dataset.windowId === 'mail') {
+      btn.textContent = unread > 0 ? `✉️ Почта (${unread})` : '✉️ Почта';
+    }
+  });
+}
+
+function processMailPush() {
+  if (!state) return;
+  const mail = CS.ensureMail(state);
+  if (!mail.pushQueue || !mail.pushQueue.length) return;
+
+  const queue = CS.consumeMailPush(state);
+  const fresh = queue.filter((item) => {
+    if (_shownMailPushIds.has(item.id)) return false;
+    _shownMailPushIds.add(item.id);
+    return true;
+  });
+  // Не раздуваем Set
+  if (_shownMailPushIds.size > 80) {
+    const arr = Array.from(_shownMailPushIds);
+    arr.slice(0, arr.length - 40).forEach((id) => _shownMailPushIds.delete(id));
+  }
+
+  if (!fresh.length) return;
+
+  // Сохраняем очищенную очередь
+  CS.saveState(state);
+
+  fresh.forEach((item, i) => {
+    setTimeout(() => showMailToast(item), i * 350);
+  });
+  syncMailBadge();
+}
+
+function showMailToast(item) {
+  const stack = document.getElementById('mailToastStack');
+  if (!stack) return;
+
+  const el = document.createElement('div');
+  el.className = 'mail-toast';
+  el.innerHTML = `
+    <div class="toast-titlebar">
+      <span>✉️ Новое сообщение</span>
+      <span class="toast-close" title="Закрыть">×</span>
+    </div>
+    <div class="toast-body">
+      <div class="toast-from">${escapeToast(item.from || '')}</div>
+      <div class="toast-subj">${escapeToast(item.subject || '(без темы)')}</div>
+    </div>`;
+
+  const close = () => {
+    el.classList.add('leaving');
+    setTimeout(() => el.remove(), 200);
+  };
+
+  el.querySelector('.toast-close').addEventListener('click', (e) => {
+    e.stopPropagation();
+    close();
+  });
+  el.addEventListener('click', () => {
+    close();
+    if (CS.isAppInstalled(state, 'mail')) {
+      WM.open('mail');
+    }
+  });
+
+  stack.appendChild(el);
+  setTimeout(close, 6000);
+}
+
+function escapeToast(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ============================================================================
 // Инициализация игры
 // ============================================================================
 async function init() {
   try {
+    // Разблокировка AudioContext по первому жесту
+    document.addEventListener('pointerdown', () => { if (CS.Audio) CS.Audio.unlock(); }, { once: true });
+
     state = await CS.loadState();
-    WM.initIcons();
-    WM.autoOpenDefaults();
+    CS.ensureSettings(state);
 
-    renderAll(true);
-    setInterval(tick, CS.CONFIG.TICK_MS);
-    setInterval(updateClock, 1000);
-    updateClock();
+    const prefs = CS.ensureSettings(state);
+    const runBoot = prefs.bootAnim !== false;
 
-    CS.onStateChanged((newState) => {
-      state = newState;
-      renderAll(false);
-    });
+    const afterBoot = () => {
+      WM.initIcons();
+      WM.autoOpenDefaults();
+      syncInstalledAppIcons();
+      syncMailBadge();
+      setupStartMenu();
+
+      const trayMail = document.getElementById('trayMail');
+      if (trayMail) {
+        trayMail.addEventListener('click', () => {
+          if (CS.isAppInstalled(state, 'mail')) WM.open('mail');
+        });
+      }
+
+      if (!CS.isAppInstalled(state, 'achievements')) {
+        CS.installApp(state, 'achievements');
+        CS.saveState(state);
+        syncInstalledAppIcons();
+      }
+
+      renderAll(true);
+      setInterval(tick, CS.CONFIG.TICK_MS);
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      setupTutorialUI();
+      if (!state.tutorialDone) {
+        showTutorial();
+      }
+
+      CS.onStateChanged((newState) => {
+        state = newState;
+        renderAll(false);
+        syncInstalledAppIcons();
+        processMailPush();
+        syncMailBadge();
+        flushAchievementToasts();
+      });
+    };
+
+    if (runBoot) {
+      runBootSequence().then(afterBoot);
+    } else {
+      const boot = document.getElementById('bootScreen');
+      if (boot) boot.hidden = true;
+      afterBoot();
+    }
   } catch (err) {
     CS.reportFatalError(err);
   }
@@ -234,6 +451,9 @@ function tick() {
   CS.tick(state);
   CS.saveState(state);
   renderPanel();
+  processMailPush();
+  syncMailBadge();
+  syncEventOverlay();
 }
 
 // ---------------------------------------------------------------------
@@ -244,6 +464,7 @@ function renderAll(forceWorkZone) {
   renderPanel();
   renderQuestPanel();
   renderHistory();
+  syncMailBadge();
   const key = `${state.chainId}-${state.stepIndex}-${CS.currentStep(state).type}`;
   if (forceWorkZone || key !== renderedStepKey) {
     renderedStepKey = key;
@@ -267,11 +488,33 @@ function renderPanel() {
   document.getElementById('burnoutFill').style.width = burnoutPct + '%';
   document.getElementById('burnoutLabel').textContent = burnoutPct;
 
-  const rentTicksLeft = CS.CONFIG.RENT_INTERVAL_TICKS - (state.rentTimer || 0);
-  const rentPct = Math.round(((state.rentTimer || 0) / CS.CONFIG.RENT_INTERVAL_TICKS) * 100);
-  document.getElementById('rentCountdown').textContent = Math.max(0, rentTicksLeft);
-  document.getElementById('rentFill').style.width = rentPct + '%';
-  document.getElementById('rentLabel').textContent = CS.currentRentAmount(state) + '💰';
+  const rentGaugeLabel = document.getElementById('rentGaugeLabel');
+  const graceBadge = document.getElementById('graceBadge');
+  if (!state.economyActive) {
+    const left = Math.max(0, state.graceTicksLeft || 0);
+    if (rentGaugeLabel) {
+      rentGaugeLabel.innerHTML = 'Льготный период · <span id="rentCountdown">' + left + '</span>с';
+    } else {
+      document.getElementById('rentCountdown').textContent = left;
+    }
+    document.getElementById('rentFill').style.width = Math.round((1 - left / Math.max(1, CS.CONFIG.GRACE_TICKS)) * 100) + '%';
+    document.getElementById('rentLabel').textContent = 'нет аренды';
+    if (graceBadge) {
+      graceBadge.hidden = false;
+      document.getElementById('graceValue').textContent = left;
+    }
+  } else {
+    const rentTicksLeft = CS.CONFIG.RENT_INTERVAL_TICKS - (state.rentTimer || 0);
+    const rentPct = Math.round(((state.rentTimer || 0) / CS.CONFIG.RENT_INTERVAL_TICKS) * 100);
+    if (rentGaugeLabel) {
+      rentGaugeLabel.innerHTML = 'Аренда через <span id="rentCountdown">' + Math.max(0, rentTicksLeft) + '</span>с';
+    } else {
+      document.getElementById('rentCountdown').textContent = Math.max(0, rentTicksLeft);
+    }
+    document.getElementById('rentFill').style.width = rentPct + '%';
+    document.getElementById('rentLabel').textContent = CS.currentRentAmount(state) + '💰';
+    if (graceBadge) graceBadge.hidden = true;
+  }
 
   const debtBadge = document.getElementById('debtBadge');
   if (state.debt > 0) {
@@ -284,6 +527,10 @@ function renderPanel() {
   document.getElementById('comboValue').textContent = combo.toFixed(1);
   document.getElementById('todayCash').textContent = Math.floor(state.totalsToday.cash);
   document.getElementById('todayChains').textContent = state.totalsToday.chains;
+
+  renderAchievementsWindow();
+  flushAchievementToasts();
+  syncEventOverlay();
 }
 
 function renderQuestPanel() {
@@ -464,11 +711,22 @@ function onTap(e) {
 
   const zone = document.getElementById('workZone');
   const rect = zone.getBoundingClientRect();
-  spawnFloaty('+' + result.gained, e.clientX - rect.left, e.clientY - rect.top);
-  shakeZone();
 
-  if (result.chainCompleted) flashHint('Квест выполнен! Новое задание уже в деле 🎉');
-  else if (result.stepCompleted) flashHint('Этап закрыт — переходим дальше.');
+  if (result.failed) {
+    combo = 1; // провал сбрасывает комбо
+    lastTapTime = 0;
+    if (CS.Audio) CS.Audio.play(state, 'click_fail');
+    spawnFloaty(result.gained < 0 ? String(result.gained) : '✘', e.clientX - rect.left, e.clientY - rect.top);
+    shakeZone();
+    const pct = Math.round((result.failChance || 0) * 100);
+    flashHint('Выгорание: клик сорвался' + (result.gained < 0 ? ' (−' + Math.abs(result.gained) + '💰)' : '') + (pct ? ' · риск ~' + pct + '%' : ''));
+  } else {
+    if (CS.Audio) CS.Audio.play(state, result.chainCompleted || result.stepCompleted ? 'success' : 'click');
+    spawnFloaty('+' + result.gained, e.clientX - rect.left, e.clientY - rect.top);
+    shakeZone();
+    if (result.chainCompleted) flashHint('Квест выполнен! Новое задание уже в деле 🎉');
+    else if (result.stepCompleted) flashHint('Этап закрыт — переходим дальше.');
+  }
 
   renderAll(false);
 }
@@ -482,6 +740,7 @@ function onFindClick(idx, el) {
     tile.found = true;
     const result = CS.registerStepClick(state);
     CS.saveState(state);
+    if (CS.Audio) CS.Audio.play(state, result.chainCompleted || result.stepCompleted ? 'success' : 'click');
     const rect = el.getBoundingClientRect();
     const zoneRect = document.getElementById('workZone').getBoundingClientRect();
     spawnFloaty('+' + result.bonus, rect.left - zoneRect.left + 20, rect.top - zoneRect.top);
@@ -554,3 +813,316 @@ function onBuyCoffee() {
 }
 
 init();
+
+// ============================================================================
+// Достижения — окно и тосты
+// ============================================================================
+
+function renderAchievementsWindow() {
+  const list = document.getElementById('achList');
+  const countEl = document.getElementById('achCount');
+  if (!list || !state) return;
+  const items = CS.achievementProgressList(state);
+  const unlockedN = items.filter((i) => i.unlocked).length;
+  if (countEl) countEl.textContent = unlockedN + ' / ' + items.length;
+  list.innerHTML = items.map((a) => {
+    const cls = a.unlocked ? 'ach-item unlocked' : 'ach-item locked';
+    let prog = '';
+    if (!a.unlocked && a.progress) {
+      const pct = Math.min(100, Math.round((a.progress.current / Math.max(1, a.progress.need)) * 100));
+      prog = `<div class="ach-progress bevel-in"><i style="width:${pct}%"></i><span>${Math.min(a.progress.current, a.progress.need)} / ${a.progress.need}</span></div>`;
+    }
+    const rewardParts = [];
+    if (a.reward.cash) rewardParts.push('+' + a.reward.cash + '💰');
+    if (a.reward.focus) rewardParts.push('+' + a.reward.focus + '⭐');
+    const rewardStr = rewardParts.length ? `<span class="ach-reward">${rewardParts.join(' ')}</span>` : '';
+    return `<div class="${cls}" data-id="${a.id}">
+      <span class="ach-icon">${a.icon}</span>
+      <div class="ach-meta">
+        <div class="ach-title">${a.title}${a.unlocked ? ' ✓' : ''}</div>
+        <div class="ach-desc">${a.desc}</div>
+        ${prog}
+      </div>
+      ${rewardStr}
+    </div>`;
+  }).join('');
+}
+
+function flushAchievementToasts() {
+  if (!state || !state._achievementQueue || !state._achievementQueue.length) return;
+  const stack = document.getElementById('achToastStack');
+  if (!stack) return;
+  while (state._achievementQueue.length) {
+    const item = state._achievementQueue.shift();
+    if (CS.Audio) CS.Audio.play(state, 'notify');
+    const el = document.createElement('div');
+    el.className = 'ach-toast bevel-out';
+    const rewardParts = [];
+    if (item.reward && item.reward.cash) rewardParts.push('+' + item.reward.cash + '💰');
+    if (item.reward && item.reward.focus) rewardParts.push('+' + item.reward.focus + '⭐');
+    el.innerHTML = `<span class="ach-toast-icon">${item.icon || '🏆'}</span>
+      <div><strong>Достижение!</strong><br>${escapeToast(item.title)}
+      ${rewardParts.length ? '<br><span class="ach-toast-reward">' + rewardParts.join(' ') + '</span>' : ''}</div>`;
+    stack.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('fade');
+      setTimeout(() => el.remove(), 400);
+    }, 4500);
+  }
+}
+
+// ============================================================================
+// Обучение
+// ============================================================================
+
+function setupTutorialUI() {
+  const nextBtn = document.getElementById('tutorialNextBtn');
+  const skipBtn = document.getElementById('tutorialSkipBtn');
+  const skipTitle = document.getElementById('tutorialSkipTitle');
+  if (nextBtn) nextBtn.addEventListener('click', onTutorialNext);
+  if (skipBtn) skipBtn.addEventListener('click', onTutorialSkip);
+  if (skipTitle) skipTitle.addEventListener('click', onTutorialSkip);
+}
+
+function showTutorial() {
+  const overlay = document.getElementById('tutorialOverlay');
+  if (!overlay || !state || state.tutorialDone) return;
+  const step = CS.currentTutorialStep(state);
+  if (!step) {
+    overlay.hidden = true;
+    return;
+  }
+  const total = CS.TUTORIAL_STEPS.length;
+  const idx = (state.tutorialStep || 0) + 1;
+  document.getElementById('tutorialStepNum').textContent = 'Шаг ' + idx + ' / ' + total;
+  document.getElementById('tutorialTitle').textContent = step.title;
+  document.getElementById('tutorialText').textContent = step.body;
+  const nextBtn = document.getElementById('tutorialNextBtn');
+  if (nextBtn) nextBtn.textContent = idx >= total ? 'Готово' : 'Далее';
+  overlay.hidden = false;
+}
+
+function onTutorialNext() {
+  if (!state) return;
+  const result = CS.advanceTutorial(state);
+  CS.saveState(state);
+  if (result.done) {
+    document.getElementById('tutorialOverlay').hidden = true;
+    flushAchievementToasts();
+    renderPanel();
+  } else {
+    showTutorial();
+  }
+}
+
+function onTutorialSkip() {
+  if (!state) return;
+  CS.skipTutorial(state);
+  CS.saveState(state);
+  document.getElementById('tutorialOverlay').hidden = true;
+  flushAchievementToasts();
+  renderPanel();
+}
+
+// ============================================================================
+// Случайные события — модальный выбор реакции
+// ============================================================================
+
+function syncEventOverlay() {
+  const overlay = document.getElementById('eventOverlay');
+  if (!overlay || !state) return;
+
+  // Не перекрываем обучение
+  const tut = document.getElementById('tutorialOverlay');
+  if (tut && !tut.hidden) {
+    overlay.hidden = true;
+    return;
+  }
+
+  const ev = state.activeEvent;
+  if (!ev) {
+    overlay.hidden = true;
+    return;
+  }
+
+  if (!overlay.hidden && overlay.dataset.eventId === ev.id) return;
+
+  overlay.dataset.eventId = ev.id;
+  const isLucky = ev.kind === 'lucky';
+  if (CS.Audio) CS.Audio.play(state, isLucky ? 'event_lucky' : 'event');
+  document.getElementById('eventWinTitle').textContent = (ev.icon || '⚡') + ' ' + (isLucky ? 'Удача.exe' : 'Кризис.exe');
+  document.getElementById('eventKind').textContent = isLucky ? '✨ Удачное событие' : '⚠️ Кризис';
+  document.getElementById('eventKind').className = 'event-kind ' + (isLucky ? 'lucky' : 'crisis');
+  document.getElementById('eventIcon').textContent = ev.icon || '⚡';
+  document.getElementById('eventTitle').textContent = ev.title || '';
+  document.getElementById('eventText').textContent = ev.body || '';
+  document.getElementById('eventHint').textContent = '';
+
+  const box = document.getElementById('eventChoices');
+  box.innerHTML = '';
+  (ev.choices || []).forEach((ch) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'win95-btn bevel-out event-choice-btn';
+    const need = ch.requiresCash || 0;
+    const can = need <= 0 || state.cash >= need;
+    let label = ch.label;
+    if (ch.costLabel) label += ' (' + ch.costLabel + ')';
+    btn.textContent = label;
+    if (!can) {
+      btn.disabled = true;
+      btn.title = 'Нужно ' + need + '💰 (у вас ' + Math.floor(state.cash) + ')';
+      btn.classList.add('disabled');
+    }
+    btn.addEventListener('click', () => onEventChoice(ch.id));
+    box.appendChild(btn);
+  });
+
+  overlay.hidden = false;
+}
+
+function onEventChoice(choiceId) {
+  if (!state || !state.activeEvent) return;
+  const result = CS.resolveEventChoice(state, choiceId);
+  if (!result.success) {
+    const hint = document.getElementById('eventHint');
+    if (result.reason === 'cash') {
+      hint.textContent = 'Не хватает денег: нужно ' + result.need + '💰';
+    }
+    // обновить доступность кнопок
+    syncEventOverlay();
+    document.getElementById('eventOverlay').dataset.eventId = '';
+    syncEventOverlay();
+    return;
+  }
+  CS.saveState(state);
+  document.getElementById('eventOverlay').hidden = true;
+  document.getElementById('eventOverlay').dataset.eventId = '';
+  renderAll(false);
+  flushAchievementToasts();
+  if (result.resultText) {
+    // краткий тост через ach-стек
+    const stack = document.getElementById('achToastStack');
+    if (stack) {
+      const el = document.createElement('div');
+      el.className = 'ach-toast bevel-out event-result-toast';
+      el.innerHTML = `<span class="ach-toast-icon">${result.icon || '⚡'}</span>
+        <div><strong>${escapeToast(result.title || 'Событие')}</strong><br>${escapeToast(result.resultText)}</div>`;
+      stack.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('fade');
+        setTimeout(() => el.remove(), 400);
+      }, 4500);
+    }
+  }
+}
+
+
+// ============================================================================
+// Загрузка Win95 + Старт + Настройки + звуки событий
+// ============================================================================
+
+function runBootSequence() {
+  return new Promise((resolve) => {
+    const screen = document.getElementById('bootScreen');
+    const fill = document.getElementById('bootFill');
+    const log = document.getElementById('bootLog');
+    if (!screen) { resolve(); return; }
+    screen.hidden = false;
+    screen.classList.remove('boot-done');
+    const steps = [
+      'POST: memory OK',
+      'Detecting mouse…',
+      'Loading HIMEM.SYS',
+      'Starting KESH.STREAM…',
+      'Initializing desktop…',
+      'Welcome'
+    ];
+    let i = 0;
+    if (CS.Audio) CS.Audio.play(state, 'boot');
+    const tickBoot = () => {
+      if (log) log.textContent = steps[Math.min(i, steps.length - 1)];
+      if (fill) fill.style.width = Math.round(((i + 1) / steps.length) * 100) + '%';
+      i += 1;
+      if (i >= steps.length) {
+        setTimeout(() => {
+          screen.classList.add('boot-done');
+          setTimeout(() => {
+            screen.hidden = true;
+            resolve();
+          }, 350);
+        }, 280);
+        return;
+      }
+      setTimeout(tickBoot, 280 + Math.random() * 120);
+    };
+    tickBoot();
+  });
+}
+
+function setupStartMenu() {
+  const btn = document.getElementById('startBtn');
+  const menu = document.getElementById('startMenu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    if (open && CS.Audio) CS.Audio.play(state, 'ui');
+  });
+  document.addEventListener('click', () => { menu.hidden = true; });
+  menu.addEventListener('click', (e) => e.stopPropagation());
+  menu.querySelectorAll('.start-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const id = item.dataset.start;
+      menu.hidden = true;
+      if (id) WM.open(id);
+    });
+  });
+}
+
+let _settingsBound = false;
+function bindSettingsUI() {
+  const sound = document.getElementById('setSound');
+  const volume = document.getElementById('setVolume');
+  const volLabel = document.getElementById('setVolumeLabel');
+  const bootAnim = document.getElementById('setBootAnim');
+  const testBtn = document.getElementById('setTestSound');
+  const replay = document.getElementById('setReplayBoot');
+  if (!sound || !state) return;
+
+  const s = CS.ensureSettings(state);
+  sound.checked = s.sound !== false;
+  if (volume) {
+    volume.value = Math.round((s.volume != null ? s.volume : 0.45) * 100);
+    if (volLabel) volLabel.textContent = volume.value + '%';
+  }
+  if (bootAnim) bootAnim.checked = s.bootAnim !== false;
+
+  if (_settingsBound) return;
+  _settingsBound = true;
+
+  function persist() {
+    CS.ensureSettings(state);
+    state.settings.sound = sound.checked;
+    if (volume) state.settings.volume = Number(volume.value) / 100;
+    if (bootAnim) state.settings.bootAnim = bootAnim.checked;
+    CS.saveState(state);
+  }
+
+  sound.addEventListener('change', () => { persist(); if (CS.Audio) CS.Audio.play(state, 'ui'); });
+  if (volume) {
+    volume.addEventListener('input', () => {
+      if (volLabel) volLabel.textContent = volume.value + '%';
+      persist();
+    });
+  }
+  if (bootAnim) bootAnim.addEventListener('change', persist);
+  if (testBtn) testBtn.addEventListener('click', () => {
+    persist();
+    if (CS.Audio) { CS.Audio.unlock(); CS.Audio.play(state, 'success'); }
+  });
+  if (replay) replay.addEventListener('click', () => {
+    runBootSequence().then(() => { if (CS.Audio) CS.Audio.play(state, 'notify'); });
+  });
+}

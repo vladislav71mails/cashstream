@@ -1,0 +1,63 @@
+html, body { height: 100%; }
+body { background: var(--face); }
+
+.crypto-root {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+.crypto-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.crypto-topbar .wallet { color: var(--ledger-dim); font-family: Consolas, "Courier New", monospace; font-size: 15px; }
+.crypto-title { color: var(--title-a); }
+
+.crypto-hint {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--shadow);
+  flex-shrink: 0;
+}
+
+.crypto-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+.crypto-card.dependency { opacity: 0.85; }
+
+.crypto-card-icon { font-size: 26px; flex-shrink: 0; }
+.crypto-card-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.crypto-card-name { font-weight: bold; font-size: 12px; }
+.crypto-card-desc { font-size: 10px; color: var(--shadow); }
+.crypto-card-status { font-size: 11px; margin-top: 2px; }
+.crypto-card-status.status-ok { color: var(--ledger-dim); font-weight: bold; }
+.crypto-card-status.status-missing { color: var(--maroon); }
+
+.crypto-card .win95-btn { font-size: 11px; flex-shrink: 0; }
+.crypto-card .win95-btn:disabled { opacity: 0.6; }
+
+.shake { animation: shake 0.13s ease-in-out; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+@media (max-width: 420px) {
+  .crypto-card { flex-wrap: wrap; }
+  .crypto-card .win95-btn { width: 100%; }
+}

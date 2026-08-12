@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>ЭЦП и СКЗИ — КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="crypto.css">
+</head>
+<body>
+  <div class="crypto-root">
+
+    <div class="crypto-topbar bevel-in">
+      <div class="wallet">💰 <span id="walletCash">0</span></div>
+      <div class="crypto-title">🔐 Средства электронной подписи</div>
+    </div>
+
+    <div class="crypto-hint bevel-in">
+      💡 Для сдачи отчётности в ФНС через 1С:Предприятие нужен полный комплект:
+      USB-токен, драйверы ЭЦП и лицензия СКЗИ — плюс криптопровайдер КриптоПро CSP,
+      который устанавливается отдельно через 🛒 Магазин приложений.exe.
+    </div>
+
+    <div class="crypto-card bevel-out">
+      <div class="crypto-card-icon">🔑</div>
+      <div class="crypto-card-info">
+        <div class="crypto-card-name">USB-токен (Рутокен / JaCarta)</div>
+        <div class="crypto-card-desc">Физический носитель ключа электронной подписи.</div>
+        <div class="crypto-card-status" id="tokenStatus">❌ Не оформлено</div>
+      </div>
+      <button class="win95-btn bevel-out" id="buyTokenBtn">Купить</button>
+    </div>
+
+    <div class="crypto-card bevel-out">
+      <div class="crypto-card-icon">💾</div>
+      <div class="crypto-card-info">
+        <div class="crypto-card-name">Драйверы ЭЦП</div>
+        <div class="crypto-card-desc">Нужны, чтобы система распознавала USB-токен.</div>
+        <div class="crypto-card-status" id="driversStatus">❌ Не оформлено</div>
+      </div>
+      <button class="win95-btn bevel-out" id="buyDriversBtn">Установить</button>
+    </div>
+
+    <div class="crypto-card bevel-out">
+      <div class="crypto-card-icon">📜</div>
+      <div class="crypto-card-info">
+        <div class="crypto-card-name">Лицензия СКЗИ</div>
+        <div class="crypto-card-desc">Право на использование средств криптографической защиты.</div>
+        <div class="crypto-card-status" id="skziStatus">❌ Не оформлено</div>
+      </div>
+      <button class="win95-btn bevel-out" id="buySkziBtn">Купить</button>
+    </div>
+
+    <div class="crypto-card bevel-out dependency">
+      <div class="crypto-card-icon">🧩</div>
+      <div class="crypto-card-info">
+        <div class="crypto-card-name">КриптоПро CSP (криптопровайдер)</div>
+        <div class="crypto-card-desc">Отдельная программа — устанавливается через 🛒 Магазин приложений.exe.</div>
+        <div class="crypto-card-status" id="cryptoproStatus">❌ Не установлено</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="crypto.js"></script>
+</body>
+</html>

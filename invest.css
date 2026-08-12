@@ -85,6 +85,7 @@ body { background: var(--face); }
 .stock-name { font-size: 12px; font-weight: bold; }
 .stock-ticker { font-size: 10px; color: var(--shadow); font-family: Consolas, monospace; }
 .stock-prediction { font-size: 10px; color: #2a5a8a; font-style: italic; margin-top: 2px; }
+.stock-vol { font-size: 9px; color: var(--shadow); }
 .stock-dividend { font-size: 9px; color: var(--ledger-dim); }
 
 .stock-price-box { text-align: right; }
@@ -108,10 +109,21 @@ body { background: var(--face); }
   border-bottom: 2px solid var(--hi);
   background: var(--paper);
 }
-.stock-trade-row { display: flex; gap: 4px; }
-.stock-trade-row button { flex: 1; font-size: 11px; font-weight: bold; padding: 4px 0; }
+.stock-trade-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.stock-trade-row button { 
+  flex: 1; 
+  font-size: 10px; 
+  font-weight: bold; 
+  padding: 3px 4px; 
+  min-width: 50px;
+}
+.stock-trade-row button:disabled { opacity: 0.5; cursor: not-allowed; }
 .buy-btn { color: var(--ledger-dim); }
+.buy-btn.active { background: var(--paper); border-top: 2px solid var(--dark); border-left: 2px solid var(--dark); }
 .sell-btn { color: var(--maroon); }
+.sell-btn.active { background: var(--paper); border-top: 2px solid var(--dark); border-left: 2px solid var(--dark); }
+.buy-all-btn { color: #2a7a3a; }
+.sell-all-btn { color: #8a2a2a; }
 .stock-holding { font-size: 10px; color: var(--shadow); text-align: right; margin-top: 2px; }
 
 /* ---- Недвижимость ---- */
@@ -119,7 +131,7 @@ body { background: var(--face); }
 .property-card {
   padding: 10px;
   display: grid;
-  grid-template-columns: 34px 1fr auto auto;
+  grid-template-columns: 34px 1fr auto;
   gap: 8px;
   align-items: center;
 }
@@ -150,8 +162,10 @@ body { background: var(--face); }
 .crypto-price { font-family: Consolas, monospace; font-size: 14px; font-weight: bold; }
 .crypto-change { font-size: 11px; }
 .crypto-balance { font-size: 10px; color: var(--shadow); }
-.crypto-actions { display: flex; gap: 4px; }
+.crypto-actions { display: flex; gap: 4px; flex-wrap: wrap; }
 .crypto-actions button { font-size: 10px; padding: 3px 8px; }
+.crypto-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+.crypto-actions .win95-input { width: 60px; font-size: 10px; padding: 2px 4px; }
 
 .crypto-wallet-section {
   padding: 8px 12px;
@@ -173,23 +187,11 @@ body { background: var(--face); }
 }
 .mining-name { font-weight: bold; font-size: 12px; }
 .mining-stats { font-size: 10px; color: var(--shadow); }
+.mining-risk { font-size: 9px; color: #8a2a2a; }
 .mining-hashrate { font-size: 11px; font-family: Consolas, monospace; color: #2a5a8a; }
-.mining-actions { display: flex; gap: 4px; }
+.mining-actions { display: flex; gap: 4px; flex-wrap: wrap; }
 .mining-actions button { font-size: 10px; padding: 3px 10px; }
-
-/* ---- Аирдропы ---- */
-.airdrops-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; }
-.airdrop-card {
-  padding: 10px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  align-items: center;
-}
-.airdrop-name { font-weight: bold; font-size: 12px; }
-.airdrop-desc { font-size: 10px; color: var(--shadow); }
-.airdrop-reward { font-size: 13px; color: var(--ledger-dim); font-weight: bold; }
-.airdrop-actions button { font-size: 10px; padding: 3px 12px; }
+.mining-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---- Опционы ---- */
 .options-list { display: flex; flex-direction: column; gap: 6px; flex: 1; overflow-y: auto; }
@@ -206,10 +208,12 @@ body { background: var(--face); }
 .option-result { font-size: 11px; font-weight: bold; }
 .option-result .win { color: var(--ledger-dim); }
 .option-result .lose { color: var(--maroon); }
+.option-timer { font-family: Consolas, monospace; }
 .option-actions { display: flex; gap: 4px; flex-wrap: wrap; }
 .option-actions button { font-size: 10px; padding: 3px 8px; }
 .option-actions .call { color: var(--ledger-dim); }
 .option-actions .put { color: var(--maroon); }
+.option-actions .win95-input { width: 70px; font-size: 10px; padding: 2px 4px; }
 
 /* ---- Общее ---- */
 .up { color: var(--ledger-dim); }
@@ -230,7 +234,7 @@ body { background: var(--face); }
   .property-card { grid-template-columns: 1fr; }
   .crypto-card { grid-template-columns: 1fr; }
   .mining-card { grid-template-columns: 1fr; }
-  .airdrop-card { grid-template-columns: 1fr; }
   .option-card { grid-template-columns: 1fr; }
   .invest-tab { font-size: 10px; padding: 3px 8px; }
+  .crypto-actions .win95-input { width: 50px; }
 }

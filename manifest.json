@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "КЭШ.СТРИМ",
   "short_name": "КЭШ.СТРИМ",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Кликер-симулятор фрилансера: квесты, казино и офис 90-х.",
   "action": {
     "default_popup": "popup.html",

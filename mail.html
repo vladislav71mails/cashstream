@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Почта — КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="mail.css">
+</head>
+<body>
+  <div class="mail-root">
+
+    <!-- Панель инструментов -->
+    <div class="mail-toolbar bevel-out">
+      <button class="win95-btn bevel-out" id="btnCompose">✏️ Написать</button>
+      <button class="win95-btn bevel-out" id="btnReply" disabled>↩ Ответить</button>
+      <button class="win95-btn bevel-out" id="btnDelete" disabled>🗑 Удалить</button>
+      <button class="win95-btn bevel-out" id="btnSpam" disabled>🚫 В спам</button>
+      <button class="win95-btn bevel-out" id="btnRefresh">↻</button>
+      <span class="mail-toolbar-sep"></span>
+      <span class="unread-badge bevel-in">Непрочитано: <b id="unreadCount">0</b></span>
+    </div>
+
+    <div class="mail-body">
+      <!-- Папки -->
+      <div class="mail-folders bevel-in">
+        <div class="folder-title">Папки</div>
+        <button class="folder-item active" data-folder="inbox">📥 Входящие <span class="cnt" id="cnt-inbox"></span></button>
+        <button class="folder-item" data-folder="sent">📤 Отправленные <span class="cnt" id="cnt-sent"></span></button>
+        <button class="folder-item" data-folder="spam">🚫 Спам <span class="cnt" id="cnt-spam"></span></button>
+        <button class="folder-item" data-folder="trash">🗑 Корзина <span class="cnt" id="cnt-trash"></span></button>
+        <button class="folder-item" data-folder="drafts">📝 Черновики <span class="cnt" id="cnt-drafts"></span></button>
+
+        <div class="folder-title" style="margin-top:10px;">Фильтры</div>
+        <div id="filterList" class="filter-list"></div>
+        <div class="filter-add">
+          <input type="text" id="filterKeyword" class="win95-input" placeholder="слово → спам">
+          <button class="win95-btn bevel-out" id="btnAddFilter">+</button>
+        </div>
+      </div>
+
+      <!-- Список писем -->
+      <div class="mail-list-pane">
+        <div class="mail-list-header bevel-out">
+          <span class="col-from">От</span>
+          <span class="col-subj">Тема</span>
+          <span class="col-date">Дата</span>
+        </div>
+        <div class="mail-list" id="mailList"></div>
+      </div>
+
+      <!-- Просмотр письма -->
+      <div class="mail-view bevel-in" id="mailView">
+        <div class="mail-view-empty">Выберите письмо</div>
+      </div>
+    </div>
+
+    <!-- Модалка «Написать» -->
+    <div class="compose-overlay hidden" id="composeOverlay">
+      <div class="compose-window bevel-out">
+        <div class="win95-titlebar">
+          <span>✉️ Новое сообщение</span>
+          <div class="dots"><span id="composeClose">×</span></div>
+        </div>
+        <div class="compose-body">
+          <label>Кому: <input type="text" id="composeTo" class="win95-input" placeholder="email@cash.stream"></label>
+          <label>Тема: <input type="text" id="composeSubject" class="win95-input"></label>
+          <textarea id="composeBody" class="win95-input compose-textarea" rows="8"></textarea>
+          <div class="compose-actions">
+            <button class="win95-btn bevel-out" id="composeSend">📤 Отправить</button>
+            <button class="win95-btn bevel-out" id="composeCancel">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="mail.js"></script>
+</body>
+</html>

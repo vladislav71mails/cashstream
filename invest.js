@@ -8,14 +8,11 @@ const qtyByStock = {};
 const qtyByCrypto = {};
 const SELECTED_STOCK = {};
 
-// Конфигурация криптовалют
-const CRYPTO_CONFIG = [
-  { id: 'btc', name: 'Bitcoin', ticker: 'BTC', icon: '₿', volatility: 0.15 },
-  { id: 'eth', name: 'Ethereum', ticker: 'ETH', icon: '⟠', volatility: 0.20 },
-  { id: 'sol', name: 'Solana', ticker: 'SOL', icon: '◎', volatility: 0.30 },
-  { id: 'ada', name: 'Cardano', ticker: 'ADA', icon: '₳', volatility: 0.25 },
-  { id: 'dot', name: 'Polkadot', ticker: 'DOT', icon: '●', volatility: 0.28 }
-];
+// Крипто — единый список из ядра (цены тикаются в CS.tick)
+function cryptoList() {
+  return (typeof CS !== 'undefined' && CS.CRYPTO_ASSETS) ? CS.CRYPTO_ASSETS : [];
+}
+const CRYPTO_CONFIG = typeof CS !== 'undefined' && CS.CRYPTO_ASSETS ? CS.CRYPTO_ASSETS : [];
 
 // Конфигурация майнингового оборудования (+ параметры риска)
 const MINING_CONFIG = [
@@ -29,7 +26,7 @@ async function init() {
   try {
     state = await CS.loadState();
 
-    // Инициализация структур данных
+    // Инициализация структур данных с защитой от undefined
     if (!state.invest) {
       state.invest = {
         stocks: {},
@@ -42,13 +39,17 @@ async function init() {
         tenants: {}
       };
     }
+    
+    // Убеждаемся, что все поля существуют
     if (!state.invest.options) state.invest.options = [];
+    if (!state.invest.realtyPrices) state.invest.realtyPrices = {};
+    if (!state.invest.renovationLevels) state.invest.renovationLevels = {};
+    if (!state.invest.tenants) state.invest.tenants = {};
+    if (!state.invest.mining) state.invest.mining = {};
 
-    // Инициализация крипто-кошелька
-    if (!state.cryptoWallet) state.cryptoWallet = {};
-    CRYPTO_CONFIG.forEach(c => {
-      if (!state.cryptoWallet[c.id]) state.cryptoWallet[c.id] = 0;
-    });
+    // Крипто-цены и кошелёк (ядро)
+    if (typeof CS.initCrypto === 'function') CS.initCrypto(state);
+    if (typeof CS.ensureInvest === 'function') CS.ensureInvest(state);
 
     // Инициализация майнинга (+ поля риска: сломан ли, когда чинили)
     MINING_CONFIG.forEach(m => {
@@ -57,6 +58,16 @@ async function init() {
       } else {
         if (state.invest.mining[m.id].broken === undefined) state.invest.mining[m.id].broken = false;
         if (state.invest.mining[m.id].incident === undefined) state.invest.mining[m.id].incident = null;
+        if (state.invest.mining[m.id].owned === undefined) state.invest.mining[m.id].owned = false;
+        if (state.invest.mining[m.id].active === undefined) state.invest.mining[m.id].active = false;
+        if (state.invest.mining[m.id].startedAt === undefined) state.invest.mining[m.id].startedAt = 0;
+      }
+    });
+
+    // Инициализация цен на недвижимость
+    CS.PROPERTIES.forEach(p => {
+      if (!state.invest.realtyPrices[p.id]) {
+        state.invest.realtyPrices[p.id] = CS.propertyCost(state, p.id);
       }
     });
 
@@ -64,7 +75,9 @@ async function init() {
       qtyByStock[s.id] = 1;
       SELECTED_STOCK[s.id] = 'buy';
     });
-    CRYPTO_CONFIG.forEach((c) => { qtyByCrypto[c.id] = 1; });
+    cryptoList().forEach((c) => { qtyByCrypto[c.id] = 1; });
+
+    await CS.saveState(state);
 
     renderTopbar();
     renderStocks();
@@ -108,11 +121,13 @@ function renderTopbar() {
 
   // Стоимость крипто-портфеля
   let cryptoValue = 0;
-  CRYPTO_CONFIG.forEach(c => {
-    const price = state.cryptoPrices?.[c.id] || 100;
-    const balance = state.cryptoWallet?.[c.id] || 0;
-    cryptoValue += price * balance;
-  });
+  if (state.cryptoPrices) {
+    cryptoList().forEach(c => {
+      const price = state.cryptoPrices?.[c.id] || 100;
+      const balance = state.cryptoWallet?.[c.id] || 0;
+      cryptoValue += price * balance;
+    });
+  }
   document.getElementById('cryptoValue').textContent = Math.floor(cryptoValue);
 
   // Крипто-кошелёк
@@ -141,16 +156,14 @@ function buildSparkline(history) {
 }
 
 // ---- Технический анализ вместо "читерского ИИ" ----
-// Никакой магии: обычная скользящая средняя (SMA) и волатильность (стд. отклонение),
-// как в настоящем терминале. Игрок сам учится читать графики, а не получает готовый ответ.
 function sma(arr, period) {
-  if (arr.length < period) return null;
+  if (!arr || arr.length < period) return null;
   const slice = arr.slice(-period);
   return slice.reduce((a, b) => a + b, 0) / slice.length;
 }
 
 function stdDev(arr) {
-  if (arr.length < 2) return 0;
+  if (!arr || arr.length < 2) return 0;
   const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
   const variance = arr.reduce((s, v) => s + (v - mean) ** 2, 0) / arr.length;
   return Math.sqrt(variance);
@@ -201,7 +214,7 @@ function renderStocks() {
     const holding = state.portfolio[s.id] || { shares: 0, avgCost: 0 };
     const qty = qtyByStock[s.id];
     const tech = getStockTechnicals(s.id);
-    const dividend = state.stockDividends?.[s.id] || s.dividendYield || 0;
+    const dividend = (typeof CS.stockDividendYield === 'function') ? CS.stockDividendYield(state, s.id) : 0;
     const maxAffordable = Math.max(0, Math.floor(state.cash / (price * (1 + CS.CONFIG.STOCK_TRADE_FEE))));
 
     const card = document.createElement('div');
@@ -309,16 +322,9 @@ function shakeSection(id) {
 }
 
 // ---- Недвижимость с улучшениями ----
+// Цена всегда от prop.cost × рост за уже купленные (баг «все по 1000» исправлен).
 function getPropertyPrice(state, propertyId) {
-  if (!state.invest.realtyPrices) state.invest.realtyPrices = {};
-  if (!state.invest.realtyPrices[propertyId]) {
-    const prop = CS.PROPERTIES.find(p => p.id === propertyId);
-    state.invest.realtyPrices[propertyId] = prop ? prop.basePrice || 1000 : 1000;
-  }
-  const base = state.invest.realtyPrices[propertyId] || 1000;
-  const volatility = 0.05;
-  const change = 1 + (Math.random() - 0.5) * volatility;
-  return Math.round(base * change);
+  return CS.propertyCost(state, propertyId);
 }
 
 function getPropertyRent(state, propertyId) {
@@ -326,19 +332,7 @@ function getPropertyRent(state, propertyId) {
   if (!prop) return 0;
   const owned = state.properties[propertyId] || 0;
   if (owned === 0) return 0;
-
-  let rent = prop.income * 0.3;
-  const renovation = state.invest.renovationLevels?.[propertyId] || 0;
-  rent *= (1 + renovation * 0.15);
-
-  const tenantType = state.invest.tenants?.[propertyId] || 'none';
-  if (tenantType === 'residential') {
-    rent *= 1.2;
-  } else if (tenantType === 'industrial') {
-    rent *= 1.5;
-  }
-
-  return rent;
+  return owned * prop.income * CS.propertyIncomeMult(state, propertyId);
 }
 
 function renderProperties() {
@@ -348,12 +342,14 @@ function renderProperties() {
   CS.PROPERTIES.forEach((p) => {
     const owned = state.properties[p.id] || 0;
     const cost = getPropertyPrice(state, p.id);
-    const priceChange = state.invest.realtyPrices?.[p.id] ?
-      ((cost - state.invest.realtyPrices[p.id]) / state.invest.realtyPrices[p.id] * 100) : 0;
     const affordable = state.cash >= cost;
     const rent = getPropertyRent(state, p.id);
-    const renovation = state.invest.renovationLevels?.[p.id] || 0;
-    const tenant = state.invest.tenants?.[p.id] || 'none';
+    const upkeep = owned * p.upkeep;
+    const renovation = CS.renovationLevel(state, p.id);
+    const renoMax = CS.CONFIG.PROPERTY_RENOVATION_MAX || 5;
+    const renoCost = CS.renovationCost(state, p.id);
+    const tenant = (state.invest && state.invest.tenants && state.invest.tenants[p.id]) || 'none';
+    const bonusPct = Math.round(renovation * (CS.CONFIG.PROPERTY_RENOVATION_INCOME_BONUS || 0.12) * 100);
 
     const tenantLabel = tenant === 'residential' ? '🏠 Жилая' :
                         tenant === 'industrial' ? '🏭 Промышленная' : '❌ Нет';
@@ -364,15 +360,15 @@ function renderProperties() {
       <div class="property-icon">${p.icon}</div>
       <div>
         <div class="property-name">${p.name}</div>
-        <div class="property-stats">Доход: +${p.income}💰/с · Содержание: -${p.upkeep}💰/с</div>
-        <div class="property-price">${cost}💰 <span class="${priceChange >= 0 ? 'up' : 'down'}">${priceChange >= 0 ? '▲' : '▼'} ${Math.abs(priceChange).toFixed(1)}%</span></div>
-        <div class="property-renovation">🔧 Улучшение: ${renovation} ур. (доход +${Math.round(renovation * 15)}%)</div>
-        <div class="property-tenant">👤 Арендатор: ${tenantLabel} (доход +${rent.toFixed(1)}💰/с)</div>
-        ${owned > 0 ? `<div class="property-owned">В собственности: ${owned}</div>` : ''}
+        <div class="property-stats">База: +${p.income}💰/с · Содержание: -${p.upkeep}💰/с (за шт.)</div>
+        <div class="property-price">${cost}💰 ${owned > 0 ? '(следующий объект)' : ''}</div>
+        <div class="property-renovation">🔧 Ремонт: ${renovation}/${renoMax} ур. (доход +${bonusPct}%)</div>
+        <div class="property-tenant">👤 Арендатор: ${tenantLabel}</div>
+        ${owned > 0 ? `<div class="property-owned">В собственности: ${owned} · net ~${(rent - upkeep).toFixed(2)}💰/с</div>` : ''}
       </div>
       <div class="property-actions">
         ${owned > 0 ? `
-          <button class="win95-btn bevel-out renovate-btn">🔧 Улучшить (${Math.round(cost * 0.3)}💰)</button>
+          <button class="win95-btn bevel-out renovate-btn" ${renovation >= renoMax || state.cash < renoCost ? 'disabled' : ''}>🔧 Улучшить (${Number.isFinite(renoCost) ? renoCost : '—'}💰)</button>
           <button class="win95-btn bevel-out tenant-btn">👤 Найти арендатора</button>
         ` : ''}
         <button class="win95-btn bevel-out buy-btn" ${affordable ? '' : 'disabled'}>Купить за ${cost}💰</button>
@@ -400,13 +396,8 @@ function renderProperties() {
 
 async function onBuyProperty(id) {
   state = await CS.loadState();
-  const cost = getPropertyPrice(state, id);
-  if (state.cash < cost) return;
-
-  state.cash -= cost;
-  state.properties[id] = (state.properties[id] || 0) + 1;
-  state.invest.realtyPrices[id] = cost;
-
+  const result = CS.buyProperty(state, id);
+  if (!result.success) return;
   CS.saveState(state);
   renderTopbar();
   renderProperties();
@@ -414,13 +405,8 @@ async function onBuyProperty(id) {
 
 async function onSellProperty(id) {
   state = await CS.loadState();
-  const owned = state.properties[id] || 0;
-  if (owned <= 0) return;
-
-  const price = getPropertyPrice(state, id) * 0.9;
-  state.cash += price;
-  state.properties[id]--;
-
+  const result = CS.sellProperty(state, id);
+  if (!result.success) return;
   CS.saveState(state);
   renderTopbar();
   renderProperties();
@@ -428,13 +414,8 @@ async function onSellProperty(id) {
 
 async function onRenovateProperty(id) {
   state = await CS.loadState();
-  const cost = getPropertyPrice(state, id) * 0.3;
-  if (state.cash < cost) return;
-
-  state.cash -= cost;
-  if (!state.invest.renovationLevels) state.invest.renovationLevels = {};
-  state.invest.renovationLevels[id] = (state.invest.renovationLevels[id] || 0) + 1;
-
+  const result = CS.renovateProperty(state, id);
+  if (!result.success) return;
   CS.saveState(state);
   renderTopbar();
   renderProperties();
@@ -442,17 +423,24 @@ async function onRenovateProperty(id) {
 
 async function onFindTenant(id) {
   state = await CS.loadState();
-  const prop = CS.PROPERTIES.find(p => p.id === id);
-  if (!prop) return;
-
+  if ((state.properties[id] || 0) <= 0) return;
+  CS.ensureInvest(state);
   const types = ['residential', 'industrial'];
   const type = types[Math.floor(Math.random() * types.length)];
-  state.invest.tenants = state.invest.tenants || {};
   state.invest.tenants[id] = type;
-
-  const bonus = Math.round(50 + Math.random() * 150);
-  state.cash += bonus;
-
+  // Поиск арендатора — платная услуга, не «подарок +150»
+  const fee = 40 + Math.round(Math.random() * 40);
+  if (state.cash < fee) {
+    alert('Не хватает денег на услуги риелтора (' + fee + '💰)');
+    return;
+  }
+  state.cash -= fee;
+  state.history.unshift({
+    type: 'realty',
+    text: `Арендатор (${type === 'residential' ? 'жилой' : 'промышленный'}) для объекта (−${fee})`,
+    time: new Date().toLocaleTimeString()
+  });
+  state.history = state.history.slice(0, 20);
   CS.saveState(state);
   renderTopbar();
   renderProperties();
@@ -463,7 +451,7 @@ function renderCrypto() {
   const list = document.getElementById('cryptoList');
   list.innerHTML = '';
 
-  CRYPTO_CONFIG.forEach((c) => {
+  cryptoList().forEach((c) => {
     const price = state.cryptoPrices?.[c.id] || 100;
     const prevPrice = state.cryptoPricesPrev?.[c.id] || price;
     const pct = ((price - prevPrice) / prevPrice) * 100;
@@ -629,8 +617,10 @@ async function onRepairMiner(id) {
   state.cash -= config.repairCost;
   rec.broken = false;
   rec.incident = null;
-  state.history.unshift({ type: 'business', text: `Отремонтировано «${config.name}» (-${config.repairCost})`, time: new Date().toLocaleTimeString() });
-  state.history = state.history.slice(0, 20);
+  if (state.history) {
+    state.history.unshift({ type: 'business', text: `Отремонтировано «${config.name}» (-${config.repairCost})`, time: new Date().toLocaleTimeString() });
+    state.history = state.history.slice(0, 20);
+  }
 
   CS.saveState(state);
   renderTopbar();
@@ -648,7 +638,7 @@ async function onToggleMining(id) {
   } else {
     const config = MINING_CONFIG.find(m => m.id === id);
     if (state.focus < config.focusCost) {
-      flashGlobalHint('Недостаточно фокуса для запуска майнинга!');
+      shakeSection('miningSection');
       return;
     }
     mining.active = true;
@@ -658,11 +648,6 @@ async function onToggleMining(id) {
   CS.saveState(state);
   renderTopbar();
   renderMining();
-}
-
-function flashGlobalHint(text) {
-  // Небольшая всплывающая подсказка через shake активной секции майнинга
-  shakeSection('miningSection');
 }
 
 // ---- Опционы (привязаны к реальным акциям биржи «Рынок Айти») ----
@@ -709,23 +694,14 @@ function renderOptions() {
 }
 
 function updateOptionTimers() {
-  clearInterval(updateOptionTimers._t);
-  updateOptionTimers._t = setInterval(() => {
-    document.querySelectorAll('.option-timer').forEach((el) => {
-      const idx = parseInt(el.dataset.idx, 10);
-      const opt = state.invest.options.find(o => o.id === idx);
-      if (!opt) return;
-      const remaining = Math.max(0, opt.expiry - (Date.now() - opt.startedAt) / 1000);
-      el.textContent = remaining.toFixed(0) + 'с';
-    });
-  }, 1000);
+  updateOptionTimersOnce();
 }
 
 async function onBuyOption(stockId, type) {
   state = await CS.loadState();
   const card = document.querySelector(`.option-amount[data-stock="${stockId}"]`);
   const amount = parseInt(card?.value || 100);
-  if (amount < 10 || state.cash > 0 === false || state.cash < amount) return;
+  if (amount < 10 || state.cash < amount) return;
 
   const price = state.stockPrices?.[stockId] || 100;
   if (!state.invest.options) state.invest.options = [];
@@ -753,13 +729,21 @@ async function onBuyOption(stockId, type) {
 
 // ---- Тик обновления ----
 function investTick(state) {
-  if (!state.invest) return;
+  if (!state.invest) {
+    state.invest = {
+      options: [],
+      realtyPrices: {},
+      renovationLevels: {},
+      tenants: {},
+      mining: {}
+    };
+  }
 
   // Обновление крипто-цен
   if (!state.cryptoPrices) state.cryptoPrices = {};
   if (!state.cryptoPricesPrev) state.cryptoPricesPrev = {};
 
-  CRYPTO_CONFIG.forEach(c => {
+  cryptoList().forEach(c => {
     const prev = state.cryptoPrices[c.id] || 100;
     const volatility = c.volatility;
     const change = (Math.random() - 0.5) * volatility * 2;
@@ -776,28 +760,30 @@ function investTick(state) {
     if (rec.active && !rec.broken && rec.startedAt > 0) {
       const duration = (Date.now() - rec.startedAt) / 1000;
 
-      // Каждую примерную "минуту" работы — шанс на инцидент
       if (duration > 5) {
         const roll = Math.random();
         if (roll < m.breakChance / 12) {
-          // Поломка оборудования — останавливает майнинг
           rec.broken = true;
           rec.active = false;
           rec.incident = 'поломка';
-          state.history.unshift({ type: 'business', text: `⚠️ «${m.name}» сломался и требует ремонта!`, time: new Date().toLocaleTimeString() });
-          state.history = state.history.slice(0, 20);
+          if (state.history) {
+            state.history.unshift({ type: 'business', text: `⚠️ «${m.name}» сломался и требует ремонта!`, time: new Date().toLocaleTimeString() });
+            state.history = state.history.slice(0, 20);
+          }
         } else if (roll < (m.breakChance + m.hackChance) / 12) {
-          // Взлом — крадут часть кэша
           const stolen = Math.round(20 + Math.random() * 80);
           state.cash = Math.max(0, state.cash - stolen);
-          state.history.unshift({ type: 'debt', text: `🕵️ Взлом! С кошелька украли ${stolen}💰 через «${m.name}»`, time: new Date().toLocaleTimeString() });
-          state.history = state.history.slice(0, 20);
+          if (state.history) {
+            state.history.unshift({ type: 'debt', text: `🕵️ Взлом! С кошелька украли ${stolen}💰 через «${m.name}»`, time: new Date().toLocaleTimeString() });
+            state.history = state.history.slice(0, 20);
+          }
         } else if (roll < (m.breakChance + m.hackChance + m.theftChance) / 12) {
-          // Кража намайненной крипты
           const stolenBtc = (state.cryptoWallet.btc || 0) * (0.1 + Math.random() * 0.2);
           state.cryptoWallet.btc = Math.max(0, (state.cryptoWallet.btc || 0) - stolenBtc);
-          state.history.unshift({ type: 'debt', text: `🥷 Кража! Украдено ${stolenBtc.toFixed(4)} BTC с «${m.name}»`, time: new Date().toLocaleTimeString() });
-          state.history = state.history.slice(0, 20);
+          if (state.history) {
+            state.history.unshift({ type: 'debt', text: `🥷 Кража! Украдено ${stolenBtc.toFixed(4)} BTC с «${m.name}»`, time: new Date().toLocaleTimeString() });
+            state.history = state.history.slice(0, 20);
+          }
         }
       }
 
@@ -828,16 +814,17 @@ function investTick(state) {
         } else {
           opt.result = 'lose';
         }
-        const stock = CS.STOCKS.find(s => s.id === opt.stockId);
-        state.history.unshift({
-          type: 'market',
-          text: `Опцион ${stock ? stock.ticker : opt.stockId} ${opt.type.toUpperCase()}: ${profit ? `+${opt.amount * 2}💰` : `-${opt.amount}💰`}`,
-          time: new Date().toLocaleTimeString()
-        });
-        state.history = state.history.slice(0, 20);
+        if (state.history) {
+          const stock = CS.STOCKS.find(s => s.id === opt.stockId);
+          state.history.unshift({
+            type: 'market',
+            text: `Опцион ${stock ? stock.ticker : opt.stockId} ${opt.type.toUpperCase()}: ${profit ? `+${opt.amount * 2}💰` : `-${opt.amount}💰`}`,
+            time: new Date().toLocaleTimeString()
+          });
+          state.history = state.history.slice(0, 20);
+        }
       }
     });
-    // подчищаем закрытые опционы старше минуты, чтобы список не рос бесконечно
     state.invest.options = state.invest.options.filter(o => o.result === null || (Date.now() - o.startedAt) / 1000 < o.expiry + 60);
   }
 
@@ -852,11 +839,69 @@ function investTick(state) {
   }
 }
 
-// Интеграция в основной тик
-const originalTick = CS.tick;
-CS.tick = function(state) {
-  originalTick(state);
-  investTick(state);
-};
+// Майнинг остаётся локальным дополнением к тику (когда открыт invest iframe
+// и родитель шлёт storage sync — на каждом локальном UI-тике тоже гоняем mining).
+function localInvestUiTick() {
+  if (!state) return;
+  // таймеры опционов + mining-доход пока вкладка открыта
+  investTickMiningOnly(state);
+  updateOptionTimersOnce();
+  renderTopbar();
+  const active = document.querySelector('.invest-section.active');
+  if (active && active.id === 'optionsSection') renderOptions();
+  if (active && active.id === 'cryptoSection') renderCrypto();
+  if (active && active.id === 'miningSection') renderMining();
+  if (active && active.id === 'marketSection') renderStocks();
+}
+
+function investTickMiningOnly(state) {
+  if (!state.invest || !state.invest.mining) return;
+  MINING_CONFIG.forEach(m => {
+    const rec = state.invest.mining[m.id];
+    if (!rec || !rec.owned) return;
+    if (rec.active && !rec.broken && rec.startedAt > 0) {
+      const duration = (Date.now() - rec.startedAt) / 1000;
+      if (duration > 5) {
+        const roll = Math.random();
+        if (roll < m.breakChance / 12) {
+          rec.broken = true; rec.active = false; rec.incident = 'поломка';
+        } else if (roll < (m.breakChance + m.hackChance) / 12) {
+          const stolen = Math.round(20 + Math.random() * 80);
+          state.cash = Math.max(0, state.cash - stolen);
+        } else if (roll < (m.breakChance + m.hackChance + m.theftChance) / 12) {
+          const stolenBtc = (state.cryptoWallet?.btc || 0) * (0.1 + Math.random() * 0.2);
+          if (state.cryptoWallet) state.cryptoWallet.btc = Math.max(0, (state.cryptoWallet.btc || 0) - stolenBtc);
+        }
+      }
+      if (duration > 60) {
+        const mined = duration * m.hashrate / 1000;
+        if (!state.cryptoWallet) state.cryptoWallet = {};
+        state.cryptoWallet.btc = (state.cryptoWallet.btc || 0) + mined * 0.01;
+        rec.startedAt = Date.now();
+        state.focus = Math.max(0, state.focus - m.focusCost);
+        CS.saveState(state);
+      }
+    }
+  });
+}
+
+function updateOptionTimersOnce() {
+  document.querySelectorAll('.option-timer').forEach((el) => {
+    const idx = parseInt(el.dataset.idx, 10);
+    const opt = state.invest?.options?.find(o => o.id === idx);
+    if (!opt || opt.result) {
+      el.textContent = opt?.result === 'win' ? '✅ выигрыш' : (opt?.result === 'lose' ? '❌ проигрыш' : '—');
+      return;
+    }
+    const remaining = Math.max(0, (opt.expiry || 45) - (Date.now() - opt.startedAt) / 1000);
+    el.textContent = remaining.toFixed(0) + 'с';
+  });
+}
+
+// UI-тик каждую секунду (цены/опционы считает ядро в fullpage CS.tick)
+setInterval(() => {
+  if (!state) return;
+  localInvestUiTick();
+}, 1000);
 
 init();

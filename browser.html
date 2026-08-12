@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Браузер — КЭШ.СТРИМ</title>
+  <link rel="stylesheet" href="win95.css">
+  <link rel="stylesheet" href="browser.css">
+</head>
+<body>
+  <div class="browser-root">
+
+    <!-- Панель навигации как в IE 3/4 -->
+    <div class="browser-toolbar bevel-out">
+      <button class="win95-btn bevel-out nav-btn" id="btnBack" title="Назад">◀</button>
+      <button class="win95-btn bevel-out nav-btn" id="btnForward" title="Вперёд">▶</button>
+      <button class="win95-btn bevel-out nav-btn" id="btnRefresh" title="Обновить">↻</button>
+      <button class="win95-btn bevel-out nav-btn" id="btnHome" title="Домой">🏠</button>
+      <div class="addr-wrap bevel-in">
+        <span class="addr-label">Адрес</span>
+        <input type="text" id="addrBar" class="win95-input addr-input" value="home.cash" spellcheck="false">
+      </div>
+      <button class="win95-btn bevel-out nav-btn" id="btnGo">Перейти</button>
+    </div>
+
+    <div class="browser-bookmarks bevel-in">
+      <button class="bookmark" data-url="home.cash">🏠 Старт</button>
+      <button class="bookmark" data-url="rabota.cash">👔 Работа.Кэш</button>
+      <button class="bookmark" data-url="office.market">🛒 Офис.Маркет</button>
+      <button class="bookmark" data-url="zakazy.birzh">📋 Биржа заказов</button>
+      <button class="bookmark" data-url="gos.cash">🏛 Госуслуги</button>
+    </div>
+
+    <div class="browser-status bevel-in">
+      <span id="statusText">Готово</span>
+      <span class="wallet">💰 <span id="walletCash">0</span></span>
+    </div>
+
+    <!-- Контент «страницы» -->
+    <div class="browser-page bevel-in" id="pageRoot">
+      <!-- заполняется JS -->
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="browser.js"></script>
+</body>
+</html>
