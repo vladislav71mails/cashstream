@@ -129,5 +129,5 @@ CS.CONFIG = {
 // service_role / secret в расширение НЕ класть.
 CS.CLOUD = {
   url: 'https://agrsvzssbyhutovflxgv.supabase.co',
-  anonKey: 'ВСТАВЬТЕ_СЮДА_PUBLISHABLE_KEY'
+  anonKey: 'sb_publishable_VvuA9YW_X025uhRZ41Br7A_Zs3aOKBv'
 };
