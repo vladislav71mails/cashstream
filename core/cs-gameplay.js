@@ -39,12 +39,16 @@ CS.makeFindLayout = function (targetCount) {
   return layout;
 };
 
+// currentChain / currentStep переопределяются в cs-freelance.js (активный заказ биржи)
 CS.currentChain = function (state) {
-  return CS.QUEST_POOL[state.chainId];
+  var q = CS.QUEST_POOL[state.chainId] || CS.QUEST_POOL[0];
+  return CS.localizeQuest ? CS.localizeQuest(q) : q;
 };
 
 CS.currentStep = function (state) {
-  return CS.currentChain(state).steps[state.stepIndex];
+  const chain = CS.currentChain(state);
+  const idx = Math.min(state.stepIndex || 0, chain.steps.length - 1);
+  return chain.steps[idx];
 };
 
 // ---- Пазл "собери цены по возрастанию" ---------------------------------
@@ -90,36 +94,93 @@ CS.buyEquip = function (state) {
   const cost = CS.equipCost(state);
   if (state.cash < cost) return { success: false, cost };
   state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
   state.equipLevel += 1;
   CS.recomputeDerived(state);
   if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
-  state.history.unshift({ type: 'business', text: `Обновлено оборудование (ур. ${state.equipLevel}), -${cost}`, time: new Date().toLocaleTimeString() });
+  let hist = `Обновлено оборудование (ур. ${state.equipLevel}), -${cost}`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
+  state.history.unshift({ type: 'business', text: hist, time: new Date().toLocaleTimeString() });
   state.history = state.history.slice(0, 20);
   CS.notifyMail(state, 'equip');
   if (!state.economyActive) CS.activateEconomy(state, 'purchase');
   CS.checkAchievements(state, { event: 'purchase', kind: 'equip' });
-  return { success: true, cost };
+  return { success: true, cost, cashback };
 };
 
 CS.buyCoffee = function (state) {
   const cost = CS.coffeeCost(state);
   if (state.cash < cost) return { success: false, cost };
   state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
   state.coffeeLevel += 1;
   if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
-  state.history.unshift({ type: 'business', text: `Куплена кофемашина (ур. ${state.coffeeLevel}), -${cost}`, time: new Date().toLocaleTimeString() });
+  let hist = `Куплена кофемашина (ур. ${state.coffeeLevel}), -${cost}`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
+  state.history.unshift({ type: 'business', text: hist, time: new Date().toLocaleTimeString() });
   state.history = state.history.slice(0, 20);
   CS.notifyMail(state, 'coffee');
   if (!state.economyActive) CS.activateEconomy(state, 'purchase');
   CS.checkAchievements(state, { event: 'purchase', kind: 'coffee' });
-  return { success: true, cost };
+  return { success: true, cost, cashback };
+};
+
+CS.chairCost = function (state) {
+  return Math.round(CS.CONFIG.CHAIR_BASE_COST * Math.pow(CS.CONFIG.CHAIR_COST_GROWTH, state.chairLevel || 0));
+};
+CS.monitorCost = function (state) {
+  return Math.round(CS.CONFIG.MONITOR_BASE_COST * Math.pow(CS.CONFIG.MONITOR_COST_GROWTH, state.monitorLevel || 0));
+};
+
+CS.buyChair = function (state) {
+  const cost = CS.chairCost(state);
+  if (state.cash < cost) return { success: false, cost };
+  state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
+  state.chairLevel = (state.chairLevel || 0) + 1;
+  if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
+  let hist = `Кресло руководителя (ур. ${state.chairLevel}), -${cost}`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
+  state.history.unshift({ type: 'business', text: hist, time: new Date().toLocaleTimeString() });
+  state.history = state.history.slice(0, 20);
+  if (!state.economyActive) CS.activateEconomy(state, 'purchase');
+  CS.checkAchievements(state, { event: 'purchase', kind: 'chair' });
+  return { success: true, cost, cashback };
+};
+
+CS.buyMonitor = function (state) {
+  const cost = CS.monitorCost(state);
+  if (state.cash < cost) return { success: false, cost };
+  state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
+  state.monitorLevel = (state.monitorLevel || 0) + 1;
+  if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
+  let hist = `Второй монитор (ур. ${state.monitorLevel}), -${cost}`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
+  state.history.unshift({ type: 'business', text: hist, time: new Date().toLocaleTimeString() });
+  state.history = state.history.slice(0, 20);
+  if (!state.economyActive) CS.activateEconomy(state, 'purchase');
+  CS.checkAchievements(state, { event: 'purchase', kind: 'monitor' });
+  return { success: true, cost, cashback };
+};
+
+/** Эффективное окно комбо с учётом мониторов */
+CS.comboWindowMs = function (state) {
+  const base = CS.CONFIG.COMBO_WINDOW_MS || 700;
+  const bonus = (state.monitorLevel || 0) * (CS.CONFIG.MONITOR_COMBO_WINDOW_BONUS || 0);
+  return base + bonus;
 };
 
 // Пересчитывает производные величины (стоимость клика, стоимость фокуса за тап)
 // после покупки апгрейдов или загрузки старого сохранения. Возвращает true,
 // если что-то изменилось (полезно для normalizeState).
 CS.recomputeDerived = function (state) {
-  const newClickValue = CS.CONFIG.BASE_CLICK_VALUE + state.equipLevel * CS.CONFIG.EQUIP_CLICK_BONUS;
+  let base = CS.CONFIG.BASE_CLICK_VALUE + state.equipLevel * CS.CONFIG.EQUIP_CLICK_BONUS;
+  if (typeof CS.getBoosterEffects === 'function') {
+    const fx = CS.getBoosterEffects(state);
+    if (fx && fx.clickFlat) base += fx.clickFlat;
+  }
+  const newClickValue = base;
   const changed = state.clickValue !== newClickValue;
   state.clickValue = newClickValue;
   return changed;
@@ -127,7 +188,12 @@ CS.recomputeDerived = function (state) {
 
 CS.focusCostPerTap = function (state) {
   const saved = state.coffeeLevel * CS.CONFIG.COFFEE_FOCUS_SAVE;
-  return Math.max(CS.CONFIG.COFFEE_MIN_FOCUS_COST, CS.CONFIG.FOCUS_COST_PER_TAP - saved);
+  let cost = Math.max(CS.CONFIG.COFFEE_MIN_FOCUS_COST, CS.CONFIG.FOCUS_COST_PER_TAP - saved);
+  if (typeof CS.getBoosterEffects === 'function') {
+    const fx = CS.getBoosterEffects(state);
+    if (fx && fx.focusCostMult) cost *= fx.focusCostMult;
+  }
+  return cost;
 };
 
 // ---- Основные игровые действия ------------------------------------------
@@ -153,15 +219,24 @@ CS.burnoutSuccessMult = function (state) {
 CS.registerTap = function (state, comboMultiplier) {
   const step = CS.currentStep(state);
   const combo = comboMultiplier || 1;
-  const baseGain = state.clickValue * combo;
+  const fx = typeof CS.getBoosterEffects === 'function' ? CS.getBoosterEffects(state) : null;
+  const clickMult = fx && fx.clickMult ? fx.clickMult : 1;
+  const incomeMult = fx && fx.incomeMult ? fx.incomeMult : 1;
+  const baseGain = state.clickValue * combo * clickMult * incomeMult;
 
   // Фокус и выгорание всегда: даже неудачный клик утомляет
   state.focus = Math.max(0, state.focus - CS.focusCostPerTap(state));
-  state.burnout = Math.min(CS.CONFIG.MAX_BURNOUT, state.burnout + CS.CONFIG.BURNOUT_GAIN_PER_TAP);
+  let burnoutGain = CS.CONFIG.BURNOUT_GAIN_PER_TAP;
+  // Кресло снижает набор выгорания за тап
+  const chairSave = (state.chairLevel || 0) * (CS.CONFIG.CHAIR_BURNOUT_GAIN_SAVE || 0);
+  if (chairSave > 0) burnoutGain *= Math.max(0.35, 1 - chairSave);
+  if (fx && fx.burnoutGainMult) burnoutGain *= fx.burnoutGainMult;
+  state.burnout = Math.min(CS.CONFIG.MAX_BURNOUT, state.burnout + burnoutGain);
   state.totalsToday.taps += 1;
   if (state.lifetime) state.lifetime.taps = (state.lifetime.taps || 0) + 1;
 
-  const failChance = CS.burnoutFailChance(state);
+  let failChance = CS.burnoutFailChance(state);
+  if (fx && fx.failChanceMult) failChance *= fx.failChanceMult;
   const failed = failChance > 0 && Math.random() < failChance;
 
   let gained = 0;
@@ -184,6 +259,9 @@ CS.registerTap = function (state, comboMultiplier) {
   // Прогресс шага только при удачном клике — иначе «работа» не двигается
   if (!failed) {
     state.stepProgress += 1;
+    if (state.freelance && state.freelance.active) {
+      state.freelance.active.stepProgress = state.stepProgress;
+    }
     if (state.stepProgress >= step.target) {
       stepCompleted = true;
     }
@@ -200,6 +278,9 @@ CS.registerTap = function (state, comboMultiplier) {
 CS.registerStepClick = function (state) {
   const step = CS.currentStep(state);
   state.stepProgress += 1;
+  if (state.freelance && state.freelance.active) {
+    state.freelance.active.stepProgress = state.stepProgress;
+  }
   const bonus = 10 + state.level * 2;
   state.cash += bonus;
   state.totalsToday.cash += bonus;
@@ -214,6 +295,13 @@ CS.registerStepClick = function (state) {
 };
 
 CS.advanceStep = function (state) {
+  // Активный заказ с биржи
+  if (state.freelance && state.freelance.active) {
+    state.freelance.active.stepProgress = state.stepProgress;
+    state.freelance.active.stepIndex = state.stepIndex;
+    return CS.advanceFreelanceStep(state);
+  }
+
   CS.addXp(state, CS.CONFIG.XP_PER_STEP);
   const chain = CS.currentChain(state);
   let chainCompleted = false;
@@ -224,7 +312,6 @@ CS.advanceStep = function (state) {
     const nextStep = chain.steps[state.stepIndex];
     CS.prepareStepLayout(state, nextStep);
   } else {
-    // цепочка завершена — награда и новая цепочка
     const reward = 140 + state.level * 35;
     state.cash += reward;
     state.totalsToday.cash += reward;
@@ -236,7 +323,7 @@ CS.advanceStep = function (state) {
     CS.addXp(state, CS.CONFIG.XP_PER_CHAIN);
     state.history.unshift({
       type: 'quest',
-      text: `Квест «${chain.title}» завершён (+${reward})`,
+      text: (CS.t ? CS.t('quest.done', { title: chain.title, n: reward }) : (`Квест «${chain.title}» (+${reward})`)),
       time: new Date().toLocaleTimeString()
     });
     state.history = state.history.slice(0, 20);
@@ -244,7 +331,6 @@ CS.advanceStep = function (state) {
     CS.assignChain(state, nextPool);
     chainCompleted = true;
 
-    // Первая цепочка снимает льготный период
     if (!state.economyActive && CS.CONFIG.GRACE_END_ON_CHAIN) {
       CS.activateEconomy(state, 'chain');
     }
@@ -268,16 +354,57 @@ CS.hireIntern = function (state) {
   const cost = CS.internCost(state);
   if (state.cash < cost) return { success: false, reason: 'cash', cost };
   state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
   state.interns += 1;
   if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
+  let hist = `Нанят стажёр №${state.interns} (-${cost})`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
   state.history.unshift({
     type: 'business',
-    text: `Нанят стажёр №${state.interns} (-${cost})`,
+    text: hist,
     time: new Date().toLocaleTimeString()
   });
   state.history = state.history.slice(0, 20);
   CS.notifyMail(state, 'hire');
   if (!state.economyActive) CS.activateEconomy(state, 'purchase');
   CS.checkAchievements(state, { event: 'purchase', kind: 'intern' });
+  return { success: true, cost };
+};
+
+// ---- Менеджеры проектов ---------------------------------------------------
+CS.pmCost = function (state) {
+  const n = state.projectManagers || 0;
+  return Math.round(CS.CONFIG.PM_BASE_COST * Math.pow(CS.CONFIG.PM_COST_GROWTH, n));
+};
+
+CS.pmCap = function (state) {
+  const type = CS.businessType(state);
+  if (type === 'ip' || type === 'ooo') return Infinity;
+  return CS.CONFIG.PM_CAP_UNREGISTERED || 0;
+};
+
+CS.hireProjectManager = function (state) {
+  if (typeof state.projectManagers !== 'number') state.projectManagers = 0;
+  const cap = CS.pmCap(state);
+  if (state.projectManagers >= cap) {
+    return { success: false, reason: 'cap', cap };
+  }
+  const cost = CS.pmCost(state);
+  if (state.cash < cost) return { success: false, reason: 'cash', cost };
+  state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
+  state.projectManagers += 1;
+  if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
+  let hist = `Нанят PM №${state.projectManagers} (-${cost})`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
+  state.history.unshift({
+    type: 'business',
+    text: hist,
+    time: new Date().toLocaleTimeString()
+  });
+  state.history = state.history.slice(0, 20);
+  CS.notifyMail(state, 'hire_pm');
+  if (!state.economyActive) CS.activateEconomy(state, 'purchase');
+  CS.checkAchievements(state, { event: 'purchase', kind: 'pm' });
   return { success: true, cost };
 };

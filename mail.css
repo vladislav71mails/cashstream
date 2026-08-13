@@ -169,6 +169,7 @@ html, body {
 .mail-row:hover { background: #e8f0ff; }
 .mail-row.selected { background: var(--title-a); color: #fff; }
 .mail-row.unread { font-weight: bold; }
+.mail-row.deal-row { border-left: 3px solid #2a5a8a; }
 
 .mail-row .col-from,
 .mail-row .col-subj {
@@ -220,6 +221,95 @@ html, body {
   white-space: pre-wrap;
   font-family: Tahoma, "MS Sans Serif", sans-serif;
   line-height: 1.45;
+}
+
+/* ---- Тред сделки (чат в письме) ---- */
+.thread-head {
+  background: #d4d0c8;
+  border: 2px inset #fff;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+}
+.thread-title {
+  font-weight: bold;
+  font-size: 13px;
+}
+.thread-meta {
+  font-size: 11px;
+  color: #444;
+  margin-top: 2px;
+}
+.thread-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px 8px;
+  background: #e8e4dc;
+  border: 2px inset #fff;
+}
+.thread-empty {
+  font-size: 11px;
+  color: #666;
+  padding: 12px;
+  text-align: center;
+}
+.thread-bubble {
+  max-width: 92%;
+  padding: 6px 8px;
+  border: 2px outset #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  background: #fff;
+}
+.thread-bubble.npc {
+  align-self: flex-start;
+  background: #f5f5f0;
+  border-color: #c0c0c0;
+}
+.thread-bubble.me {
+  align-self: flex-end;
+  background: #c8dcf0;
+  border-color: #7a9cbf;
+}
+.thread-who {
+  font-size: 10px;
+  font-weight: bold;
+  margin-bottom: 3px;
+  color: #333;
+}
+.thread-time {
+  float: right;
+  font-weight: normal;
+  color: #777;
+  margin-left: 8px;
+}
+.thread-text {
+  clear: both;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mail-deal-actions {
+  margin-top: 10px;
+  padding: 8px;
+  border: 2px outset #fff;
+  background: #d4d0c8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.mail-deal-hint {
+  width: 100%;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+.mail-deal-btn {
+  font-size: 11px;
+  padding: 3px 8px;
 }
 
 /* Compose */

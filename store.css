@@ -1,5 +1,8 @@
-html, body { height: 100%; }
-body { background: var(--face); }
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--face, #c0c0c0);
+}
 
 .store-root {
   padding: 10px;
@@ -7,6 +10,8 @@ body { background: var(--face); }
   flex-direction: column;
   gap: 10px;
   min-height: 100%;
+  box-sizing: border-box;
+  background: var(--face, #c0c0c0);
   overflow: hidden;
 }
 
@@ -20,7 +25,11 @@ body { background: var(--face); }
   font-weight: bold;
   flex-shrink: 0;
 }
-.store-topbar .wallet { color: var(--ledger-dim); font-family: Consolas, "Courier New", monospace; font-size: 15px; }
+.store-topbar .wallet {
+  color: var(--ledger-dim);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 15px;
+}
 .store-title { color: var(--title-a); }
 
 .store-hint {
@@ -45,9 +54,9 @@ body { background: var(--face); }
   flex-direction: column;
   gap: 6px;
   padding: 12px;
-  min-height: 150px;
+  min-height: 140px;
+  background: var(--face, #c0c0c0);
 }
-.store-card.soon { opacity: 0.72; }
 
 .store-icon {
   font-size: 30px;

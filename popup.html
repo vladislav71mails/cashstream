@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>КЭШ.СТРИМ</title>
   <link rel="stylesheet" href="win95.css">
   <link rel="stylesheet" href="popup.css">
@@ -9,57 +10,85 @@
 <body>
   <div class="win95-window" id="mainWindow">
     <div class="win95-titlebar">
-      <span>💼 КЭШ.СТРИМ.exe — Рабочий стол</span>
+      <span data-i18n="popup.title">💻 КЭШ.СТРИМ — мини-ПК</span>
       <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
     </div>
 
-    <div class="win95-body">
-      <div class="cash-row">
-        <div class="cash-ticker">
-          💰 <span id="cashValue">0</span><span class="cursor-blink">_</span>
+    <div class="win95-body pop-body">
+      <!-- Мини-рабочий стол -->
+      <div class="mini-desktop" id="miniDesktop">
+        <div class="mini-icons" id="miniIcons">
+          <!-- заполняется из JS -->
         </div>
-        <div class="level-badge bevel-out">Ур. <span id="levelValue">1</span></div>
-      </div>
 
-      <div class="gauges">
-        <div class="gauge-row">
-          <label>Фокус</label>
-          <div class="win95-gauge focus"><i id="focusFill" style="width:100%"></i><span class="gauge-label" id="focusLabel">100</span></div>
+        <!-- HUD статуса поверх стола -->
+        <div class="mini-hud bevel-out" id="miniHud">
+          <div class="hud-row">
+            <span class="hud-cash">💰 <span id="cashValue">0</span></span>
+            <span class="hud-level bevel-in">Ур.<span id="levelValue">1</span></span>
+            <span class="hud-bars">
+              <span class="hud-bar focus" title="Фокус"><i id="focusFill" style="width:100%"></i></span>
+              <span class="hud-bar burnout" title="Выгорание"><i id="burnoutFill" style="width:0%"></i></span>
+            </span>
+          </div>
+          <div class="hud-order" id="orderLine">Нет активного заказа</div>
+          <div class="hud-alerts" id="hudAlerts"></div>
         </div>
-        <div class="gauge-row">
-          <label>Выгорание</label>
-          <div class="win95-gauge burnout"><i id="burnoutFill" style="width:0%"></i><span class="gauge-label" id="burnoutLabel">0</span></div>
+      </div>
+
+      
+      <!-- Выбор языка -->
+      <div class="net-dialog bevel-out" id="langPanel" hidden>
+        <div class="net-dialog-title">
+          <span data-i18n="tut.lang">Язык / Language</span>
+          <button type="button" class="win95-btn bevel-out net-close" id="langPanelClose" title="×">×</button>
+        </div>
+        <div class="net-dialog-body">
+          <div class="lang-choices">
+            <button type="button" class="win95-btn bevel-out lang-choice" data-lang="auto">🌐 System / Авто</button>
+            <button type="button" class="win95-btn bevel-out lang-choice" data-lang="ru">Русский</button>
+            <button type="button" class="win95-btn bevel-out lang-choice" data-lang="en">English</button>
+            <button type="button" class="win95-btn bevel-out lang-choice" data-lang="es">Español</button>
+          </div>
         </div>
       </div>
 
-      <div class="intern-mini bevel-out" id="internMini">🧑‍💼 x<span id="internCountPopup">0</span> стажёров · +<span id="internIncomePopup">0</span>💰/с · 🏠 +<span id="realtyIncomePopup">0</span>💰/с</div>
-      <div class="debt-mini bevel-out" id="debtMini" hidden>⚠️ Долг <span id="debtValuePopup">0</span>💰 — прибыль уходит на проценты</div>
-
-      <div class="quest-box bevel-in">
-        <div class="quest-title" id="questTitle">Загрузка квеста…</div>
-        <div class="quest-step" id="questStep">—</div>
-        <div class="win95-gauge quest"><i id="questFill" style="width:0%"></i><span class="gauge-label" id="questLabel">0/0</span></div>
-      </div>
-
-      <div class="work-zone bevel-in" id="workZone">
-        <button id="tapBtn" class="win95-btn bevel-out tap-btn">Работать 🖱️</button>
-        <div id="popupHint" class="hint"></div>
-      </div>
-
-      <div class="actions">
-        <button id="openFull" class="win95-btn bevel-out">🖥️ Развернуть на весь экран</button>
-        <button id="openCasino" class="win95-btn bevel-out">🎰 Перерыв (Казино)</button>
-        <button id="openInvest" class="win95-btn bevel-out">📈 Инвестиции (Рынок/Недвижимость)</button>
+      <!-- Диалог облака (Win95 Network Logon) -->
+      <div class="net-dialog bevel-out" id="cloudAuthPanel" hidden>
+        <div class="net-dialog-title">
+          <span data-i18n="popup.net.title">☁ Сетевой вход</span>
+          <button type="button" class="win95-btn bevel-out net-close" id="popCloudCancel" title="Закрыть">×</button>
+        </div>
+        <div class="net-dialog-body">
+          <div class="net-dialog-hint" id="netDialogHint" data-i18n="popup.net.hint_guest"></div>
+          <label class="net-label" data-i18n="popup.net.user">Пользователь (email)</label>
+          <input type="email" id="popCloudEmail" class="win95-input" placeholder="you@mail.com" autocomplete="username" />
+          <label class="net-label" data-i18n="popup.net.pass">Пароль</label>
+          <input type="password" id="popCloudPass" class="win95-input" placeholder="••••••" autocomplete="current-password" />
+          <div class="net-dialog-actions">
+            <button type="button" class="win95-btn bevel-out" id="popCloudLogin" data-i18n="popup.net.login">Войти</button>
+            <button type="button" class="win95-btn bevel-out" id="popCloudRegister" data-i18n="popup.net.register">Регистрация</button>
+            <button type="button" class="win95-btn bevel-out" id="popCloudGoogle" title="Google">G</button>
+          </div>
+          <div class="net-dialog-msg" id="popCloudMsg"></div>
+        </div>
       </div>
     </div>
 
-    <div class="win95-taskbar">
-      <button class="win95-btn bevel-out start-btn">🪟 СТАРТ</button>
+    <div class="win95-taskbar pop-taskbar">
+      <button type="button" class="win95-btn bevel-out start-btn" id="openFullMini" data-i18n="desktop.start">СТАРТ</button>
       <div class="taskbar-sep"></div>
-      <div class="tray">
-        <span title="Комбо">🔥 x<span id="comboValue">1.0</span></span>
-        <span id="clock">00:00</span>
-      </div>
+      <div class="taskbar-fill"></div>
+      <button type="button" class="tray-btn lang-tray bevel-out" id="langTrayBtn" title="Language / Язык">
+        <span id="langTrayIcon">🌐</span>
+        <span class="lang-tray-label" id="langTrayLabel">RU</span>
+      </button>
+      <button type="button" class="tray-btn cloud-tray bevel-out" id="cloudBarBtn" title="Облачный сейв / Сетевой вход">
+        <span id="cloudBarIcon">☁</span>
+        <span class="cloud-tray-label" id="cloudTrayLabel" data-i18n="popup.net.network">Сеть</span>
+      </button>
+      <span class="tray-status" id="statusTray">⏸</span>
+      <span class="tray-clock" id="clock">00:00</span>
     </div>
   </div>
 

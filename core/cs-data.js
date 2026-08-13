@@ -8,6 +8,7 @@ CS.TASK_ICONS = ['🔧', '✏️', '📎', '📊', '💻', '📞', '📁', '🖨
 // Каждая цепочка — 3 шага разных типов: tap / find / puzzle
 CS.QUEST_POOL = [
   {
+    id: 'strange_client',
     title: 'Странный заказчик',
     steps: [
       { type: 'find',   text: 'Найдите 3 ошибки в техзадании', target: 3 },
@@ -16,6 +17,7 @@ CS.QUEST_POOL = [
     ]
   },
   {
+    id: 'deadline_fire',
     title: 'Дедлайн горит',
     steps: [
       { type: 'tap',    text: 'Доверстайте лендинг до полуночи', target: 60 },
@@ -24,6 +26,7 @@ CS.QUEST_POOL = [
     ]
   },
   {
+    id: 'new_intern',
     title: 'Новый стажёр',
     steps: [
       { type: 'puzzle', text: 'Проверьте прайс стажёра по возрастанию', target: 4 },
@@ -32,6 +35,7 @@ CS.QUEST_POOL = [
     ]
   },
   {
+    id: 'annual_report',
     title: 'Годовой отчёт',
     steps: [
       { type: 'tap',    text: 'Сведите таблицы Excel', target: 50 },
@@ -40,6 +44,7 @@ CS.QUEST_POOL = [
     ]
   },
   {
+    id: 'urgent_meeting',
     title: 'Срочная планёрка',
     steps: [
       { type: 'find',   text: 'Найдите свободный переговорный слот', target: 3 },
@@ -48,6 +53,42 @@ CS.QUEST_POOL = [
     ]
   }
 ];
+
+/** Локализованная копия цепочки для UI (оригинал QUEST_POOL не мутируем). */
+CS.localizeQuest = function (quest) {
+  if (!quest) return quest;
+  var id = quest.id;
+  var out = Object.assign({}, quest);
+  if (id && CS._i18nHas && CS._i18nHas('quest.' + id + '.title')) {
+    out.title = CS.t('quest.' + id + '.title');
+  }
+  if (Array.isArray(quest.steps)) {
+    out.steps = quest.steps.map(function (s, i) {
+      var step = Object.assign({}, s);
+      var key = id ? ('quest.' + id + '.s' + i) : null;
+      if (key && CS._i18nHas && CS._i18nHas(key)) step.text = CS.t(key);
+      return step;
+    });
+  }
+  return out;
+};
+
+CS.propertyName = function (propOrId) {
+  var id = typeof propOrId === 'string' ? propOrId : (propOrId && propOrId.id);
+  var def = typeof propOrId === 'object' ? propOrId : (CS.PROPERTIES || []).find(function (p) { return p.id === id; });
+  var key = 'prop.' + id + '.name';
+  if (id && CS._i18nHas && CS._i18nHas(key)) return CS.t(key);
+  return (def && def.name) || id || '';
+};
+
+CS.stockName = function (stockOrId) {
+  var id = typeof stockOrId === 'string' ? stockOrId : (stockOrId && stockOrId.id);
+  var def = typeof stockOrId === 'object' ? stockOrId : (CS.STOCKS || []).find(function (s) { return s.id === id; });
+  var key = 'stock.' + id + '.name';
+  if (id && CS._i18nHas && CS._i18nHas(key)) return CS.t(key);
+  return (def && def.name) || id || '';
+};
+
 
 // ---- Биржа «Рынок Айти»: список бумаг -------------------------------------
 CS.STOCKS = [
@@ -82,12 +123,15 @@ CS.DEFAULT_STATE = {
   puzzleOrder: [],
   findLayout: [],
   interns: 0,
+  projectManagers: 0,
   history: [],
   totalsToday: { cash: 0, taps: 0, chains: 0 },
 
   // экономика
   equipLevel: 0,
   coffeeLevel: 0,
+  chairLevel: 0,
+  monitorLevel: 0,
   rentTimer: 0,
   debt: 0,
   taxRisk: 0,
@@ -113,7 +157,7 @@ CS.DEFAULT_STATE = {
   eventCooldown: 0,           // тиков до следующего возможного события
 
   // Настройки компьютера (звук, загрузка)
-  settings: { sound: true, volume: 0.45, bootAnim: true },
+  settings: { sound: true, volume: 0.45, bootAnim: true, lang: 'auto' },
 
   // Почтовый клиент
   mail: {
@@ -122,5 +166,18 @@ CS.DEFAULT_STATE = {
     filters: [],
     lastSystemAt: 0,
     pushQueue: []
+  },
+
+  // Магазин: браузер и почта предустановлены (системные «бесплатные» приложения)
+  apps: { installed: ['browser', 'mail'] },
+
+  // Временные бустеры и коллекционные карточки
+  boosters: {
+    active: [],
+    cards: {},
+    adCooldown: 0,
+    adsWatched: 0,
+    boostersUsed: 0,
+    tickCounter: 0
   }
 };

@@ -1,24 +1,29 @@
 // КЭШ.СТРИМ — общий namespace (подключать первым).
 var CS = window.CS || (window.CS = {});
 
-// ---- 1С / регистрация / apps ----
+// ---- Кабинет учёта / регистрация / apps ----
 // ============================================================================
 // Бизнес и регистрация — статус влияет на риски, наём стажёров и банк.
 // Центральное место для всех программ (Отчетность.exe, Банк.exe, рабочий
 // стол), чтобы не дублировать логику и не расходиться в данных.
 // ============================================================================
 
+// «Кабинет учёта»: подписки, периоды, регистрация
 CS.DEFAULT_ONEC = {
   installed: false,
-  version: '8.3.10',
-  targetVersion: '8.3.27',
+  version: '1.0',
+  targetVersion: '1.4',
   updated: false,
   patchesInstalled: 0,
-  patchesNeeded: 3,
+  patchesNeeded: 2,
   directoriesLoaded: false,
+  // Подписки: не «навсегда», а до игрового тика
   licensePaid: false,
   itsPaid: false,
+  itsUntilTick: 0,
   reportingPaid: false,
+  reportingUntilTick: 0,
+  dirsUntilTick: 0,
   tokenBought: false,
   cryptoproInstalled: false,
   edsDrivers: false,
@@ -30,21 +35,132 @@ CS.DEFAULT_ONEC = {
     inn: '',
     ogrn: '',
     registered: false,
-    lifetimeIncome: 0,   // накопленный доход самозанятого — для проверки лимита
-    capWarned: false     // лимит самозанятого уже превышен
+    registeredAt: null,
+    lifetimeIncome: 0,
+    capWarned: false
+  },
+  // Налоговый период (последовательность сдачи)
+  period: {
+    id: 1,
+    diagnosed: false,
+    declared: false,   // декларация сформирована
+    taxPaid: false,    // налог за период уплачен
+    submitted: false   // отправлено в ФНС
   },
   reportsSubmitted: 0,
   lastReportAt: null,
-  taxes: { totalIncome: 0, totalPaid: 0, rate: 0.13 }
+  taxes: { totalIncome: 0, totalPaid: 0, rate: 0.13 },
+  maintenanceLog: []
+};
+
+/** Книга учёта: откуда доход / куда расход */
+CS.ensureLedger = function (state) {
+  if (!state.ledger || typeof state.ledger !== 'object') {
+    state.ledger = {
+      income: { click: 0, freelance: 0, property: 0, intern: 0, casino: 0, other: 0 },
+      expense: { rent: 0, tax: 0, penalty: 0, purchase: 0, debt: 0, other: 0 }
+    };
+  }
+  ['click', 'freelance', 'property', 'intern', 'casino', 'other'].forEach(function (k) {
+    if (typeof state.ledger.income[k] !== 'number') state.ledger.income[k] = 0;
+  });
+  ['rent', 'tax', 'penalty', 'purchase', 'debt', 'other'].forEach(function (k) {
+    if (typeof state.ledger.expense[k] !== 'number') state.ledger.expense[k] = 0;
+  });
+  return state.ledger;
+};
+
+CS.recordIncome = function (state, cat, amount) {
+  if (!amount || amount <= 0) return;
+  var L = CS.ensureLedger(state);
+  if (L.income[cat] == null) cat = 'other';
+  L.income[cat] += amount;
+};
+
+CS.recordExpense = function (state, cat, amount) {
+  if (!amount || amount <= 0) return;
+  var L = CS.ensureLedger(state);
+  if (L.expense[cat] == null) cat = 'other';
+  L.expense[cat] += amount;
 };
 
 CS.ensureOnec = function (state) {
   if (!state.stats) state.stats = { history: [], transactions: [] };
   if (!state.stats.onec) state.stats.onec = JSON.parse(JSON.stringify(CS.DEFAULT_ONEC));
-  if (!state.stats.onec.registration) {
-    state.stats.onec.registration = JSON.parse(JSON.stringify(CS.DEFAULT_ONEC.registration));
+  var o = state.stats.onec;
+  if (!o.registration) {
+    o.registration = JSON.parse(JSON.stringify(CS.DEFAULT_ONEC.registration));
   }
-  return state.stats.onec;
+  if (!o.period) {
+    o.period = JSON.parse(JSON.stringify(CS.DEFAULT_ONEC.period));
+  }
+  if (typeof o.itsUntilTick !== 'number') o.itsUntilTick = o.itsPaid ? 999999 : 0;
+  if (typeof o.reportingUntilTick !== 'number') o.reportingUntilTick = o.reportingPaid ? 999999 : 0;
+  if (typeof o.dirsUntilTick !== 'number') o.dirsUntilTick = o.directoriesLoaded ? 999999 : 0;
+  CS.ensureLedger(state);
+  return o;
+};
+
+/** Тик обслуживания кабинета: истечение подписок и справочников */
+CS.tickAccounting = function (state) {
+  var o = CS.ensureOnec(state);
+  var tick = (state.freelance && state.freelance.tick) || 0;
+  // fallback: монотонный счётчик
+  if (!state._acctTick) state._acctTick = 0;
+  state._acctTick += 1;
+  tick = state._acctTick;
+
+  if (o.itsPaid && o.itsUntilTick > 0 && tick > o.itsUntilTick) {
+    o.itsPaid = false;
+    o.updated = false;
+    state.history.unshift({
+      type: 'debt',
+      text: (CS.t ? CS.t('biz.its_expired') : 'ITS expired'),
+      time: new Date().toLocaleTimeString()
+    });
+    state.history = state.history.slice(0, 20);
+  }
+  if (o.reportingPaid && o.reportingUntilTick > 0 && tick > o.reportingUntilTick) {
+    o.reportingPaid = false;
+    state.history.unshift({
+      type: 'debt',
+      text: (CS.t ? CS.t('biz.reporting_expired') : 'Reporting expired'),
+      time: new Date().toLocaleTimeString()
+    });
+    state.history = state.history.slice(0, 20);
+  }
+  if (o.directoriesLoaded && o.dirsUntilTick > 0 && tick > o.dirsUntilTick) {
+    o.directoriesLoaded = false;
+  }
+};
+
+CS.renameBusiness = function (state, newName) {
+  var o = CS.ensureOnec(state);
+  if (!o.registration.registered) return { success: false, reason: 'not_registered' };
+  newName = String(newName || '').trim();
+  if (newName.length < 2) return { success: false, reason: 'name' };
+  var cost = o.registration.type === 'ooo' ? 80 : 40;
+  if (state.cash < cost) return { success: false, reason: 'cash', cost: cost };
+  state.cash -= cost;
+  CS.recordExpense(state, 'other', cost);
+  o.registration.name = newName;
+  state.history.unshift({
+    type: 'business',
+    text: 'Смена наименования на «' + newName + '» (−' + cost + '💰)',
+    time: new Date().toLocaleTimeString()
+  });
+  state.history = state.history.slice(0, 20);
+  return { success: true, cost: cost, name: newName };
+};
+
+CS.startNewTaxPeriod = function (state) {
+  var o = CS.ensureOnec(state);
+  o.period.id = (o.period.id || 1) + 1;
+  o.period.diagnosed = false;
+  o.period.declared = false;
+  o.period.taxPaid = false;
+  o.period.submitted = false;
+  return o.period;
 };
 
 // 'none' | 'self' | 'ip' | 'ooo'
@@ -88,7 +204,7 @@ CS.businessTick = function (state) {
       reg.capWarned = true;
       state.history.unshift({
         type: 'debt',
-        text: '⚠️ Доход превысил лимит самозанятого! Дальше — риск проверки ФНС, как без регистрации. Оформите ИП в Отчетность.exe.',
+        text: (CS.t ? CS.t('biz.self_limit') : ''),
         time: new Date().toLocaleTimeString()
       });
       state.history = state.history.slice(0, 20);
@@ -113,10 +229,10 @@ CS.businessTick = function (state) {
       }
       state.burnout = Math.min(CS.CONFIG.MAX_BURNOUT, state.burnout + CS.CONFIG.UNREG_BURNOUT_PENALTY);
       state.taxRisk = 0;
-      CS.notifyMail(state, 'tax_fine', `Вам начислен штраф ${fine}💰 за незарегистрированную деятельность. Стресс +${CS.CONFIG.UNREG_BURNOUT_PENALTY}. Рекомендуем оформить ИП/ООО в «Отчетность.exe».`);
+      CS.notifyMail(state, 'tax_fine', (CS.t ? CS.t('biz.fine', { n: fine, s: CS.CONFIG.AUDIT_STRESS || 10 }) : ('fine '+fine)));
       state.history.unshift({
         type: 'debt',
-        text: `🚨 Внеплановая проверка ФНС! Незарегистрированная деятельность — штраф ${fine}💰, стресс +${CS.CONFIG.UNREG_BURNOUT_PENALTY}`,
+        text: (CS.t ? CS.t('biz.audit') : 'audit'),
         time: new Date().toLocaleTimeString()
       });
       state.history = state.history.slice(0, 20);
@@ -133,6 +249,7 @@ CS.businessTick = function (state) {
 // у уже существующих программ (например, КриптоПро CSP нужен Отчетность.exe).
 // Основные программы (Задачи/Работа/Перерыв/Инвестиции/Банк/Статистика/
 // Магазин) системные и всегда доступны — они не проходят через этот список.
+// Браузер и Почта тоже предустановлены (см. DEFAULT_STATE.apps + мигра в storage).
 // ============================================================================
 
 CS.APP_CATALOG = [
@@ -181,14 +298,7 @@ CS.APP_CATALOG = [
     price: 0,
     status: 'available',
     addsIcon: true
-  },
-  { id: 'startup',      name: 'Стартап',    icon: '🚀', tagline: 'Открой свой бизнес: кофейня, студия, агентство', status: 'soon' },
-  { id: 'scripts',      name: 'Скрипты',    icon: '🤖', tagline: 'Автоматизация кликов и рутинных задач',          status: 'soon' },
-  { id: 'guild',        name: 'Гильдия',    icon: '🤝', tagline: 'Совместные проекты с другими фрилансерами',       status: 'soon' },
-  { id: 'blog',         name: 'Блог',       icon: '📝', tagline: 'Портфолио и подписчики — пассивный доход',        status: 'soon' },
-  { id: 'news',         name: 'Новости',    icon: '📰', tagline: 'Игровые новости, влияющие на рынки',              status: 'soon' },
-  { id: 'perks',        name: 'Навыки',     icon: '🌳', tagline: 'Дерево прокачки и пассивные бонусы',              status: 'soon' },
-  { id: 'events',       name: 'События',    icon: '⚡', tagline: 'Случайные кризисы и как на них реагировать',      status: 'soon' }
+  }
 ];
 
 CS.ensureApps = function (state) {
@@ -214,6 +324,7 @@ CS.installApp = function (state, id) {
   if (state.cash < price) return { success: false, reason: 'cash', price };
 
   state.cash -= price;
+  if (price > 0 && typeof CS.applyCashback === 'function') CS.applyCashback(state, price);
   apps.installed.push(id);
   if (typeof def.onInstall === 'function') def.onInstall(state);
 

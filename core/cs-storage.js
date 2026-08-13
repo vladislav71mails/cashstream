@@ -51,7 +51,8 @@ CS.normalizeState = function (stored) {
   state.totalsToday = Object.assign({}, CS.DEFAULT_STATE.totalsToday, stored.totalsToday || {});
 
   const numericFields = ['cash', 'focus', 'burnout', 'level', 'xp', 'clickValue', 'stepProgress', 'interns',
-    'equipLevel', 'coffeeLevel', 'rentTimer', 'debt', 'taxRisk', 'graceTicksLeft', 'tutorialStep'];
+    'projectManagers', 'equipLevel', 'coffeeLevel', 'chairLevel', 'monitorLevel',
+    'rentTimer', 'debt', 'taxRisk', 'graceTicksLeft', 'tutorialStep'];
   numericFields.forEach((key) => {
     if (typeof state[key] !== 'number' || Number.isNaN(state[key])) {
       state[key] = CS.DEFAULT_STATE[key] || 0;
@@ -120,7 +121,7 @@ CS.normalizeState = function (stored) {
   if (CS.initMarket(state)) changed = true;
   if (CS.recomputeDerived(state)) changed = true;
 
-  // «1С» / бизнес-регистрация должны существовать всегда, независимо от того,
+  // Кабинет учёта / бизнес-регистрация должны существовать всегда, независимо от того,
   // открывал ли игрок Отчетность.exe — иначе банк/наём стажёров не смогут
   // прочитать статус регистрации.
   if (!state.stats || !state.stats.onec) {
@@ -135,9 +136,26 @@ CS.normalizeState = function (stored) {
     CS.ensureApps(state);
     changed = true;
   }
+  // Браузер и Почта — по умолчанию установлены (миграция старых сейвов)
+  {
+    const apps = CS.ensureApps(state);
+    ['browser', 'mail'].forEach((id) => {
+      if (!apps.installed.includes(id)) {
+        apps.installed.push(id);
+        changed = true;
+      }
+    });
+  }
 
   CS.ensureInvest(state);
   if (typeof CS.ensureSettings === 'function') CS.ensureSettings(state);
+  if (typeof CS.ensureBoosters === 'function') {
+    CS.ensureBoosters(state);
+  }
+  if (typeof CS.ensureFreelance === 'function') {
+    CS.ensureFreelance(state);
+    CS.refreshOrderBoard(state, false);
+  }
 
   if (!state.mail || typeof state.mail !== 'object') {
     state.mail = { messages: [], nextId: 1, filters: [], lastSystemAt: 0, pushQueue: [] };
@@ -163,6 +181,10 @@ CS.normalizeState = function (stored) {
 };
 
 CS.saveState = function (state) {
+  // Очереди тостов только в памяти — иначе дубли после storage.onChanged
+  if (state && Object.prototype.hasOwnProperty.call(state, '_achievementQueue')) {
+    try { delete state._achievementQueue; } catch (e) { state._achievementQueue = []; }
+  }
   if (CS._hasChromeStorage) {
     chrome.storage.local.set({ [CS.CONFIG.STORAGE_KEY]: state });
     return;
@@ -205,6 +227,36 @@ CS.reportFatalError = function (err) {
   document.body.appendChild(banner);
 };
 
+/** Экспорт сейва в JSON (без токенов облака — они в csCloudSession). */
+CS.exportStateJson = function (state) {
+  const copy = JSON.parse(JSON.stringify(state || {}));
+  if (copy._achievementQueue) delete copy._achievementQueue;
+  return JSON.stringify(copy, null, 2);
+};
+
+/** Импорт из JSON → { success, state, error }. */
+CS.importStateJson = function (raw) {
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { success: false, error: 'Файл не похож на сейв КЭШ.СТРИМ' };
+    }
+    if (typeof parsed.cash !== 'number' && typeof parsed.level !== 'number') {
+      return { success: false, error: 'В файле нет полей cash/level — возможно, неверный файл' };
+    }
+    return { success: true, state: CS.normalizeState(parsed) };
+  } catch (e) {
+    return { success: false, error: e.message || 'Не удалось разобрать JSON' };
+  }
+};
+
+/** Полный сброс прогресса. Сессию облака не трогает. */
+CS.resetProgress = function () {
+  const fresh = CS.freshState();
+  CS.saveState(fresh);
+  return fresh;
+};
+
 CS.freshState = function () {
   const state = JSON.parse(JSON.stringify(CS.DEFAULT_STATE));
   state.graceTicksLeft = CS.CONFIG.GRACE_TICKS;
@@ -221,6 +273,11 @@ CS.freshState = function () {
   CS.ensureApps(state);
   CS.ensureInvest(state);
   if (typeof CS.ensureSettings === 'function') CS.ensureSettings(state);
+  if (typeof CS.ensureBoosters === 'function') CS.ensureBoosters(state);
+  if (typeof CS.ensureFreelance === 'function') {
+    CS.ensureFreelance(state);
+    CS.refreshOrderBoard(state, true);
+  }
   CS.assignChain(state, Math.floor(Math.random() * CS.QUEST_POOL.length));
   return state;
 };

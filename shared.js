@@ -10,13 +10,19 @@
     'core/cs-data.js',
     'core/cs-storage.js',
     'core/cs-gameplay.js',
+    'core/cs-freelance.js',
     'core/cs-market.js',
     'core/cs-economy.js',
     'core/cs-business.js',
     'core/cs-mail.js',
     'core/cs-achievements.js',
     'core/cs-events.js',
-    'core/cs-audio.js'
+    'core/cs-boosters.js',
+    'core/cs-ads.js',
+    'core/cs-audio.js',
+    'core/i18n/runtime.js',
+    'core/i18n/ru.js',
+    'core/cs-cloud.js'
   ];
 
   var base = '';
@@ -25,6 +31,9 @@
       base = document.currentScript.src.replace(/[^\/]+$/, '');
     }
   } catch (e) { /* ignore */ }
+  // база для ленивой подгрузки locale (en/es/...)
+  window.CS = window.CS || {};
+  CS.coreBase = base;
 
   // document.write в момент разбора shared.js вставляет script-теги синхронно,
   // поэтому к моменту следующего <script src="fullpage.js"> объект CS уже собран.

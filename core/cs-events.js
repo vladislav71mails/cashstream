@@ -420,6 +420,34 @@ CS.EVENT_POOL = [
   }
 ];
 
+
+CS._i18nHas = function (key) {
+  try {
+    var pack = CS.I18N && CS.I18N[CS.getLang && CS.getLang()];
+    return !!(pack && pack[key]);
+  } catch (e) { return false; }
+};
+CS.eventTitle = function (ev) {
+  if (!ev) return '';
+  var key = 'ev.' + ev.id + '.title';
+  return CS._i18nHas(key) ? CS.t(key) : (ev.title || '');
+};
+CS.eventBody = function (ev) {
+  if (!ev) return '';
+  var key = 'ev.' + ev.id + '.body';
+  return CS._i18nHas(key) ? CS.t(key) : (ev.body || '');
+};
+CS.choiceLabel = function (evId, choice) {
+  if (!choice) return '';
+  var key = 'ev.' + evId + '.c.' + choice.id + '.label';
+  return CS._i18nHas(key) ? CS.t(key) : (choice.label || '');
+};
+CS.choiceResult = function (evId, choice) {
+  if (!choice) return '';
+  var key = 'ev.' + evId + '.c.' + choice.id + '.result';
+  return CS._i18nHas(key) ? CS.t(key) : (choice.resultText || '');
+};
+
 CS.maybeTriggerEvent = function (state) {
   if (!state || !state.economyActive) return;
   if (state.activeEvent) return;
@@ -507,18 +535,22 @@ CS.resolveEventChoice = function (state, choiceId) {
     state.lifetime.eventsHandled = (state.lifetime.eventsHandled || 0) + 1;
   }
 
-  const kindTag = ev.kind === 'lucky' ? 'удача' : 'кризис';
+  const locTitle = CS.eventTitle(ev);
+  const locBody = CS.eventBody(ev);
+  const locLabel = CS.choiceLabel(ev.id, choice);
+  const locResult = CS.choiceResult(ev.id, choice);
+  const kindTag = ev.kind === 'lucky' ? 'lucky' : 'crisis';
   state.history.unshift({
     type: 'event',
-    text: `${ev.icon || '⚡'} ${ev.title}: ${choice.resultText || choice.label}`,
+    text: `${ev.icon || '⚡'} ${locTitle}: ${locResult || locLabel}`,
     time: new Date().toLocaleTimeString()
   });
   state.history = state.history.slice(0, 20);
 
   CS.addMail(state, {
     from: 'events@cash.stream',
-    subject: `${ev.icon || '⚡'} ${ev.title}`,
-    body: `${ev.body}\n\nВаш выбор: ${choice.label}\n\n${choice.resultText || ''}\n\n— Служба событий КЭШ.СТРИМ`,
+    subject: `${ev.icon || '⚡'} ${locTitle}`,
+    body: `${locBody}\n\n${CS.t ? CS.t('ev.your_choice', { label: locLabel }) : locLabel}\n\n${locResult || ''}\n\n${CS.t ? CS.t('ev.mail_footer') : ''}`,
     folder: 'inbox',
     tags: ['event', kindTag]
   });
@@ -530,9 +562,9 @@ CS.resolveEventChoice = function (state, choiceId) {
 
   return {
     success: true,
-    resultText: choice.resultText,
+    resultText: locResult,
     effects: fx,
-    title: ev.title,
+    title: locTitle,
     icon: ev.icon,
     kind: ev.kind
   };

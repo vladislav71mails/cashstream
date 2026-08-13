@@ -1,7 +1,7 @@
 html, body { height: 100%; margin: 0; }
 body { background: var(--face); overflow: hidden; }
 
-/* ---- Заставка при запуске (как у настоящей 1С) ---- */
+/* ---- Заставка при запуске  ---- */
 .onec-boot {
   position: fixed;
   inset: 0;
@@ -75,7 +75,7 @@ body { background: var(--face); overflow: hidden; }
   overflow: hidden;
 }
 
-/* ---- Заголовок 1С ---- */
+/* ---- Заголовок кабинета ---- */
 .onec-header {
   display: flex;
   align-items: center;

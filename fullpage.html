@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
   <title>КЭШ.СТРИМ — Рабочий стол</title>
   <link rel="stylesheet" href="win95.css">
   <link rel="stylesheet" href="fullpage.css">
@@ -24,20 +25,20 @@
     <!-- Панель управления: всегда на виду, не закрывается -->
     <div class="win95-window panel-window">
       <div class="win95-titlebar">
-        <span>🖥️ Панель управления — КЭШ.СТРИМ</span>
+        <span data-i18n="panel.title">🖥️ Панель управления — КЭШ.СТРИМ</span>
         <div class="dots"><span>_</span><span>▢</span><span>×</span></div>
       </div>
       <div class="win95-body panel-body">
         <div class="cash-ticker">💰 <span id="cashValue">0</span><span class="cursor-blink">_</span></div>
-        <div class="panel-badge bevel-out">Уровень <span id="levelValue">1</span></div>
+        <div class="panel-badge bevel-out"><span data-i18n="panel.level">Уровень</span> <span id="levelValue">1</span></div>
         <div class="panel-badge bevel-out">XP <span id="xpValue">0</span>/<span id="xpNeedValue">100</span></div>
 
         <div class="panel-gauge">
-          <label>Фокус</label>
+          <label data-i18n="panel.focus">Фокус</label>
           <div class="win95-gauge focus"><i id="focusFill" style="width:100%"></i><span class="gauge-label" id="focusLabel">100</span></div>
         </div>
         <div class="panel-gauge">
-          <label>Выгорание</label>
+          <label data-i18n="panel.burnout">Выгорание</label>
           <div class="win95-gauge burnout"><i id="burnoutFill" style="width:0%"></i><span class="gauge-label" id="burnoutLabel">0</span></div>
         </div>
         <div class="panel-gauge" id="rentGaugeBlock">
@@ -48,36 +49,40 @@
         <div class="panel-badge bevel-out debt-badge" id="debtBadge" hidden>⚠️ Долг: <span id="debtValue">0</span>💰</div>
         <div class="panel-badge bevel-out combo-badge">🔥 Комбо x<span id="comboValue">1.0</span></div>
         <div class="panel-badge bevel-out grace-badge" id="graceBadge" hidden>🛡️ Льгота: <span id="graceValue">0</span>с</div>
+        <div class="panel-badge bevel-out booster-badge" id="boosterBadge" hidden>⚡ <span id="boosterBadgeText" data-i18n="panel.boost_badge">буст</span></div>
+        <div class="panel-boost-row">
+          <button type="button" class="win95-btn bevel-out panel-boost-btn" id="panelBoostBtn" data-i18n="panel.boosters" title="Бустеры">⚡ Бустеры</button>
+        </div>
       </div>
     </div>
 
     <!-- Иконки рабочего стола: программы открываются двойным кликом -->
     <div class="desktop-icons" id="desktopIcons">
       <button class="desktop-icon" data-window="quests">
-        <span class="icon-glyph">📋</span><span class="icon-label">Задачи.exe</span>
+        <span class="icon-glyph">📋</span><span class="icon-label" data-i18n="desktop.quests">Биржа.exe</span>
       </button>
       <button class="desktop-icon" data-window="work">
-        <span class="icon-glyph">💻</span><span class="icon-label">Работа.exe</span>
+        <span class="icon-glyph">💻</span><span class="icon-label" data-i18n="desktop.work">Работа.exe</span>
       </button>
       <button class="desktop-icon" data-window="casino">
-        <span class="icon-glyph">🎰</span><span class="icon-label">Перерыв.exe</span>
+        <span class="icon-glyph">☕</span><span class="icon-label" data-i18n="desktop.casino">Перерыв.exe</span>
       </button>
       <button class="desktop-icon" data-window="invest">
-        <span class="icon-glyph">📈</span><span class="icon-label">Инвестиции.exe</span>
+        <span class="icon-glyph">📈</span><span class="icon-label" data-i18n="desktop.invest">Инвестиции.exe</span>
       </button>
       <button class="desktop-icon" data-window="bank">
-  <span class="icon-glyph">🏦</span><span class="icon-label">Банк.exe</span>
+  <span class="icon-glyph">🏦</span><span class="icon-label" data-i18n="desktop.bank">Банк.exe</span>
 </button>
 <button class="desktop-icon" data-window="stats">
-  <span class="icon-glyph">📊</span><span class="icon-label">Отчетность.exe</span>
+  <span class="icon-glyph">📊</span><span class="icon-label" data-i18n="desktop.stats">Отчетность.exe</span>
 </button>
 <button class="desktop-icon" data-window="store">
-  <span class="icon-glyph">🛒</span><span class="icon-label">Магазин.exe</span>
+  <span class="icon-glyph">🛒</span><span class="icon-label" data-i18n="desktop.store">Магазин.exe</span>
 </button>
       <button class="desktop-icon" data-window="settings">
-        <span class="icon-glyph">⚙️</span><span class="icon-label">Настройка.exe</span>
+        <span class="icon-glyph">⚙️</span><span class="icon-label" data-i18n="desktop.settings">Настройка.exe</span>
       </button>
-      <div class="desktop-hint">Дважды кликните по значку, чтобы запустить программу</div>
+      <div class="desktop-hint" data-i18n="desktop.hint">Дважды кликните по значку, чтобы запустить программу</div>
     </div>
 
     <!-- Сюда JS монтирует плавающие окна -->
@@ -86,15 +91,17 @@
   </div>
 
   <div class="win95-taskbar">
-    <button type="button" class="win95-btn bevel-out start-btn" id="startBtn">🪟 СТАРТ</button>
+    <button type="button" class="win95-btn bevel-out start-btn" id="startBtn" data-i18n="desktop.start">🪟 СТАРТ</button>
     <div class="start-menu" id="startMenu" hidden>
-      <div class="start-menu-side">КЭШ.СТРИМ</div>
+      <div class="start-menu-side" data-i18n="start.menu_side">КЭШ.СТРИМ</div>
       <div class="start-menu-items">
-        <button type="button" class="start-item" data-start="settings">⚙️ Настройка компьютера</button>
-        <button type="button" class="start-item" data-start="achievements">🏆 Достижения</button>
+        <button type="button" class="start-item" data-start="settings" data-i18n="desktop.settings_menu">⚙️ Настройка компьютера</button>
+        <button type="button" class="start-item" data-start="achievements" data-i18n="desktop.achievements">🏆 Достижения</button>
+        <button type="button" class="start-item" data-start="boosters" data-i18n="desktop.boosters_menu">⚡ Бустеры</button>
         <button type="button" class="start-item" data-start="store">🛒 Магазин</button>
         <div class="start-sep"></div>
-        <button type="button" class="start-item" data-start="quests">📋 Задачи</button>
+        <button type="button" class="start-item" data-start="quests">📋 Биржа заказов</button>
+        <button type="button" class="start-item" data-start="journal">🗂️ Журнал</button>
         <button type="button" class="start-item" data-start="work">💻 Работа</button>
         <button type="button" class="start-item" data-start="bank">🏦 Банк</button>
       </div>
@@ -126,10 +133,36 @@
         <div class="dots"><span id="tutorialSkipTitle" title="Пропустить">×</span></div>
       </div>
       <div class="win95-body tutorial-body">
-        <div class="tutorial-step-num" id="tutorialStepNum">Шаг 1/5</div>
+        <div class="tutorial-step-num" id="tutorialStepNum">Шаг 1/6</div>
+        <div class="tutorial-lang-row" id="tutorialLangRow">
+          <label id="tutorialLangLabel">Язык / Language</label>
+          <select id="tutorialLang" class="win95-input">
+            <option value="auto">🌐 System / Авто</option>
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <div class="sim-disclaimer">⚠ Симулятор. Не реальные деньги, налоги и инвестиции.</div>
         <div class="tutorial-title" id="tutorialTitle">—</div>
         <div class="tutorial-text" id="tutorialText">—</div>
+        <div class="tutorial-auth" id="tutorialAuth" hidden>
+          <div class="settings-row">
+            <input type="email" id="tutCloudEmail" class="win95-input" placeholder="Email" autocomplete="username" />
+          </div>
+          <div class="settings-row">
+            <input type="password" id="tutCloudPass" class="win95-input" placeholder="Пароль (от 6 символов)" autocomplete="new-password" />
+          </div>
+          <div class="settings-row" style="gap:6px;flex-wrap:wrap;">
+            <button type="button" class="win95-btn bevel-out" id="tutCloudLogin">Войти</button>
+            <button type="button" class="win95-btn bevel-out" id="tutCloudRegister">Регистрация</button>
+            <button type="button" class="win95-btn bevel-out" id="tutCloudGoogle">G Google</button>
+          </div>
+          <div class="settings-hint" id="tutCloudMsg"></div>
+          <div class="settings-hint" id="tutCloudLogged" hidden></div>
+        </div>
         <div class="tutorial-actions">
+          <button type="button" class="win95-btn bevel-out" id="tutorialBackBtn">← Назад</button>
           <button type="button" class="win95-btn bevel-out" id="tutorialSkipBtn">Пропустить</button>
           <button type="button" class="win95-btn bevel-out primary" id="tutorialNextBtn">Далее</button>
         </div>
@@ -157,28 +190,37 @@
 
   <!-- Шаблоны содержимого окон (клонируются при первом открытии) -->
   <template id="tpl-quests">
+    <div class="win95-body fl-body">
+      <div class="fl-header">
+        <div class="quest-title" id="questTitle">📋 Биржа заказов</div>
+        <div class="fl-sub">Берите заказ → выполняйте этапы в «Работа.exe» → сдавайте до дедлайна</div>
+      </div>
+
+      <div class="fl-kanban">
+        <div class="fl-col bevel-in">
+          <div class="fl-col-title">📥 Доступно</div>
+          <div class="fl-col-list" id="flBoardList"></div>
+        </div>
+        <div class="fl-col bevel-in fl-col-active">
+          <div class="fl-col-title">🛠️ В работе</div>
+          <div class="fl-col-list" id="flActivePane"></div>
+        </div>
+        <div class="fl-col bevel-in">
+          <div class="fl-col-title">✅ Сдано</div>
+          <div class="fl-col-list" id="flDoneList"></div>
+        </div>
+      </div>
+
+      <div class="fl-chat-wrap bevel-in" id="flChatWrap" hidden>
+        <div class="fl-chat-title">💬 Переписка с заказчиком</div>
+        <div class="fl-chat-log" id="flChatLog"></div>
+        <div class="fl-chat-replies" id="flChatReplies"></div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-journal">
     <div class="win95-body">
-      <div class="quest-title" id="questTitle">Загрузка…</div>
-      <ol class="quest-steps" id="questStepsList"></ol>
-      <div class="quest-current bevel-in">
-        <div class="quest-current-text" id="questStepText">—</div>
-        <div class="win95-gauge quest"><i id="questFill" style="width:0%"></i><span class="gauge-label" id="questLabel">0/0</span></div>
-      </div>
-
-      <div class="intern-box bevel-in">
-        <div class="intern-title">🧑‍💼 Стажёры (авто-клики)</div>
-        <div class="intern-stats">Нанято: <span id="internCount">0</span> · Доход: <span id="internIncome">0</span>💰/с</div>
-        <button id="hireIntern" class="win95-btn bevel-out">Нанять за <span id="internCost">400</span>💰</button>
-      </div>
-
-      <div class="intern-box bevel-in">
-        <div class="intern-title">🛠️ Апгрейды рабочего места</div>
-        <div class="intern-stats">Оборудование ур. <span id="equipLevel">0</span> · клик +<span id="equipBonus">0</span></div>
-        <button id="buyEquip" class="win95-btn bevel-out">Улучшить за <span id="equipCost">260</span>💰</button>
-        <div class="intern-stats" style="margin-top:6px;">Кофемашина ур. <span id="coffeeLevel">0</span> · фокус дешевле</div>
-        <button id="buyCoffee" class="win95-btn bevel-out">Купить за <span id="coffeeCost">220</span>💰</button>
-      </div>
-
       <div class="history-title">🗂️ Журнал событий</div>
       <div class="history-log bevel-in" id="historyLog"></div>
     </div>
@@ -251,36 +293,143 @@
 
 <template id="tpl-settings">
   <div class="win95-body settings-body">
-    <div class="settings-title">⚙️ Панель управления</div>
+    <div class="settings-title" data-i18n="set.title">⚙️ Панель управления</div>
     <div class="settings-section bevel-in">
       <div class="settings-row">
-        <label><input type="checkbox" id="setSound" /> Звуки кликов и событий</label>
+        <label><input type="checkbox" id="setSound" /> <span data-i18n="set.sound">Звуки кликов и событий</span></label>
       </div>
       <div class="settings-row">
-        <label>Громкость</label>
+        <label data-i18n="set.volume">Громкость</label>
         <input type="range" id="setVolume" min="0" max="100" value="45" />
         <span id="setVolumeLabel">45%</span>
       </div>
       <div class="settings-row">
-        <button type="button" class="win95-btn bevel-out" id="setTestSound">Тест звука</button>
+        <button type="button" class="win95-btn bevel-out" id="setTestSound" data-i18n="set.test_sound">Тест звука</button>
       </div>
     </div>
     <div class="settings-section bevel-in">
       <div class="settings-row">
-        <label><input type="checkbox" id="setBootAnim" /> Анимация загрузки рабочего стола</label>
+        <label data-i18n="set.lang">Язык интерфейса</label>
+        <select id="setLang" class="win95-input" style="min-width:140px;">
+          <option value="auto">🌐 System / Авто</option>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
       </div>
-      <div class="settings-hint">Похожа на старт Windows 95 при открытии fullpage.</div>
+      <div class="settings-hint" data-i18n="set.lang_hint">Меняет подписи оболочки. Часть игрового контента пока на русском.</div>
     </div>
     <div class="settings-section bevel-in">
-      <div class="settings-hint">Система: КЭШ.СТРИМ · Win95 UI · Web Audio</div>
       <div class="settings-row">
-        <button type="button" class="win95-btn bevel-out" id="setReplayBoot">Показать загрузку снова</button>
+        <label><input type="checkbox" id="setBootAnim" /> <span data-i18n="set.boot">Анимация загрузки рабочего стола</span></label>
+      </div>
+      <div class="settings-hint" data-i18n="set.boot_hint">Похожа на старт Windows 95 при открытии fullpage.</div>
+    </div>
+    <div class="settings-section bevel-in" id="setCloudSection">
+      <div class="settings-hint"><strong data-i18n="set.cloud">☁ Облачный аккаунт</strong></div>
+      <div class="settings-hint" id="setCloudStatus" data-i18n="set.cloud.loading">Загрузка…</div>
+      <div id="setCloudLoggedOut">
+        <div class="settings-row">
+          <label data-i18n="set.email">Email</label>
+          <input type="email" id="setCloudEmail" class="win95-input" placeholder="you@mail.com" autocomplete="username" />
+        </div>
+        <div class="settings-row">
+          <label data-i18n="set.password">Пароль</label>
+          <input type="password" id="setCloudPass" class="win95-input" placeholder="минимум 6 символов" data-i18n-placeholder="set.password_ph" autocomplete="current-password" />
+        </div>
+        <div class="settings-row" style="gap:6px;flex-wrap:wrap;">
+          <button type="button" class="win95-btn bevel-out" id="setCloudLogin" data-i18n="set.login">Войти</button>
+          <button type="button" class="win95-btn bevel-out" id="setCloudRegister" data-i18n="set.register">Регистрация</button>
+          <button type="button" class="win95-btn bevel-out" id="setCloudGoogle" data-i18n="set.google">G Войти через Google</button>
+        </div>
+      </div>
+      <div id="setCloudLoggedIn" hidden>
+        <div class="settings-row" style="gap:6px;flex-wrap:wrap;">
+          <button type="button" class="win95-btn bevel-out" id="setCloudPush" data-i18n="set.push">💾 Сохранить в облако</button>
+          <button type="button" class="win95-btn bevel-out" id="setCloudPull" data-i18n="set.pull">☁ Загрузить из облака</button>
+          <button type="button" class="win95-btn bevel-out" id="setCloudLogout" data-i18n="set.logout">Выйти</button>
+        </div>
+        <div class="settings-hint" data-i18n="set.cloud_hint">«Сохранить» — текущий прогресс в БД. «Загрузить» — заменить игру сейвом с сервера.</div>
+      </div>
+      <div class="settings-hint" id="setCloudMsg"></div>
+    </div>
+    <div class="settings-section bevel-in">
+      <div class="settings-hint"><strong data-i18n="set.local">💾 Локальный сейв</strong></div>
+      <div class="settings-row" style="gap:6px;flex-wrap:wrap;">
+        <button type="button" class="win95-btn bevel-out" id="setExportSave" data-i18n="set.export">⬇ Экспорт JSON</button>
+        <button type="button" class="win95-btn bevel-out" id="setImportSave" data-i18n="set.import">⬆ Импорт JSON</button>
+        <input type="file" id="setImportFile" accept="application/json,.json" hidden />
+      </div>
+      <div class="settings-row">
+        <button type="button" class="win95-btn bevel-out" id="setResetProgress" style="color:#7a1c1c;" data-i18n="set.reset">Сбросить прогресс</button>
+      </div>
+      <div class="settings-hint" data-i18n="set.save_hint">Экспорт — файл на диск. Импорт заменит текущий прогресс. Сброс начнёт игру заново (облако не удаляется).</div>
+      <div class="settings-hint" id="setSaveMsg"></div>
+    </div>
+    <div class="settings-section bevel-in">
+      <div class="settings-hint" data-i18n="set.system">Система: КЭШ.СТРИМ · Win95 UI · Web Audio · v0.2.4</div>
+      <div class="settings-row">
+        <button type="button" class="win95-btn bevel-out" id="setReplayBoot" data-i18n="set.replay_boot">Показать загрузку снова</button>
       </div>
     </div>
   </div>
 </template>
 
+<template id="tpl-boosters">
+  <div class="win95-body boosters-body">
+    <div class="boost-tabs bevel-in">
+      <button type="button" class="win95-btn bevel-out boost-tab active" data-boost-tab="shop" data-i18n="boost.tab_shop">⚡ Бустеры</button>
+      <button type="button" class="win95-btn bevel-out boost-tab" data-boost-tab="cards" data-i18n="boost.tab_cards">🃏 Коллекция</button>
+      <!-- Поддержка/донат временно скрыта до публикации -->
+      <button type="button" class="win95-btn bevel-out boost-tab" data-boost-tab="support" data-i18n="boost.tab_support">💎 Поддержка</button>
+    </div>
+    <div class="boost-panel" id="boostPanelShop">
+      <div class="sim-disclaimer bevel-in">⚠ Симулятор. Внутриигровые «деньги», «налоги» и «реклама» — не реальные финансы.</div>
+      <div class="boost-hint bevel-in">Бесплатно раз в ~2 мин (перерыв) или купить за кэш. Реклама — когда подключим РСЯ на сайте.</div>
+      <div class="boost-active bevel-in" id="boostActiveList"></div>
+      <div class="boost-grid" id="boostShopGrid"></div>
+      <div class="boost-ad-row">
+        <button type="button" class="win95-btn bevel-out boost-ad-btn" id="boostWatchAd">☕ Бесплатный случайный буст</button>
+        <span class="boost-ad-cd" id="boostAdCd"></span>
+      </div>
+    </div>
+    <div class="boost-panel" id="boostPanelCards" hidden>
+      <div class="boost-hint bevel-in">Коллекционные карточки — постоянные мелкие бонусы. Шанс выпасть при бесплатном бусте или рекламе.</div>
+      <div class="boost-cards-grid" id="boostCardsGrid"></div>
+    </div>
+    <div class="boost-panel" id="boostPanelSupport" hidden aria-hidden="true">
+      <div class="boost-hint bevel-in">Добровольная поддержка автора. Внутриигровой прогресс от доната не зависит — это симулятор, не магазин.</div>
+      <div class="boost-support-box bevel-out">
+        <div class="boost-support-title">💎 DonationAlerts</div>
+        <p>Если игра зашла — можно поддержать разработку на DonationAlerts. Ссылка откроется в новой вкладке браузера.</p>
+        <button type="button" class="win95-btn bevel-out" id="boostOpenShop">🌐 Открыть DonationAlerts</button>
+        <div class="boost-support-note" id="boostShopUrlNote"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Оверлей рекламы: симуляция или ожидание РСЯ Rewarded (CS.Ads) -->
+<div class="ad-overlay" id="adOverlay" hidden>
+  <div class="ad-dialog bevel-out">
+    <div class="ad-title">📺 Реклама спонсора</div>
+    <div class="ad-body">
+      <div class="ad-fake-banner">КЭШ.СТРИМ · рекламный слот</div>
+      <div class="ad-progress bevel-in"><i id="adProgressFill"></i></div>
+      <div class="ad-timer" id="adTimer">Осталось 8 с…</div>
+      <div class="ad-note">После полного просмотра — бустер (иногда карточка). Провайдер: CS.CONFIG.ADS</div>
+    </div>
+    <button type="button" class="win95-btn bevel-out" id="adSkipBtn" disabled>Забрать награду</button>
+  </div>
+</div>
+
   <script src="shared.js"></script>
-  <script src="fullpage.js"></script>
+  <!-- UI-слой (без ES-modules, порядок важен) -->
+  <script src="ui/wm.js"></script>
+  <script src="ui/desktop.js"></script>
+  <script src="ui/work-zone.js"></script>
+  <script src="ui/overlays.js"></script>
+  <script src="ui/settings.js"></script>
+  <script src="ui/fullpage-main.js"></script>
 </body>
 </html>

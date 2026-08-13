@@ -25,7 +25,7 @@ CS.CONFIG = {
   INTERN_INCOME_PER_TICK: 0.8,    // кэш в секунду с одного стажёра
 
   // ---- Экономика: аренда офиса (обязательный расход) ----
-  RENT_INTERVAL_TICKS: 25,        // раз в 25 секунд прилетает счёт за аренду
+  RENT_INTERVAL_TICKS: 50,        // раз в ~50 секунд прилетает счёт за аренду (раньше 25 — слишком агрессивно)
   RENT_BASE: 100,                 // база аренды
   RENT_PER_LEVEL: 18,             // аренда растёт вместе с уровнем игрока
   RENT_LATE_BURNOUT: 20,          // штраф выгорания, если нечем платить
@@ -46,8 +46,8 @@ CS.CONFIG = {
   BURNOUT_SUCCESS_PENALTY: 0.35,  // при высоком burnout успешный клик даёт меньше (до −35%)
 
   // ---- Случайные кризисные (и редкие удачные) события ----
-  EVENT_CHANCE_PER_TICK: 0.04,    // чуть чаще кризисы
-  EVENT_COOLDOWN_TICKS: 50,
+  EVENT_CHANCE_PER_TICK: 0.02,    // реже кризисы (раньше 0.04 — слишком часто)
+  EVENT_COOLDOWN_TICKS: 90,       // длиннее пауза между событиями
   EVENT_MIN_LEVEL: 1,
 
   // ---- Апгрейды оборудования (тратим кэш, чтобы не залипать на тапе) ----
@@ -58,6 +58,23 @@ CS.CONFIG = {
   COFFEE_COST_GROWTH: 1.5,
   COFFEE_FOCUS_SAVE: 0.16,        // снижение стоимости фокуса за тап на уровень
   COFFEE_MIN_FOCUS_COST: 0.45,
+
+  // ---- Офис.Маркет: кресло и второй монитор ----
+  CHAIR_BASE_COST: 280,
+  CHAIR_COST_GROWTH: 1.55,
+  CHAIR_BURNOUT_DECAY_BONUS: 0.08, // +к естественному спаду выгорания за уровень
+  CHAIR_BURNOUT_GAIN_SAVE: 0.10,  // −к набору выгорания за тап за уровень (доля)
+  MONITOR_BASE_COST: 320,
+  MONITOR_COST_GROWTH: 1.6,
+  MONITOR_COMBO_WINDOW_BONUS: 120, // +мс к окну комбо за уровень монитора
+
+  // ---- Менеджеры проектов (PM) ----
+  PM_BASE_COST: 900,
+  PM_COST_GROWTH: 1.7,
+  PM_CAP_UNREGISTERED: 0,         // без ИП/ООО PM недоступны
+  PM_CHAT_CHANCE_PER: 0.22,       // шанс авто-ответа клиенту за тик на chat-этапе (за PM)
+  PM_NEGO_CHANCE_PER: 0.12,       // шанс продвинуть переговоры / принять сделку
+  PM_INTERN_HELP_MULT: 0.35,      // множитель к шансу помощи стажёров за каждого PM
 
   // ---- Биржа «Рынок Айти» ----
   STOCK_NEWS_CHANCE: 0.05,        // шанс резкого новостного скачка за тик
@@ -84,5 +101,33 @@ CS.CONFIG = {
   UNREG_BURNOUT_PENALTY: 16,
   UNREG_RISK_DECAY: 3,             // затухание риска за тик, если деятельность легальна
   SELF_EMPLOYED_INCOME_CAP: 6000,  // лимит дохода самозанятого (аналог 2.4 млн ₽/год, уменьшено под игру)
-  INTERN_CAP_UNREGISTERED: 1       // без регистрации бизнеса (или самозанятости) — максимум 1 «неофициальный» стажёр
+  INTERN_CAP_UNREGISTERED: 1,      // без регистрации бизнеса (или самозанятости) — максимум 1 «неофициальный» стажёр
+
+  // ---- Бустеры / реклама / монетизация владельца ----
+  BOOSTER_FREE_COOLDOWN_TICKS: 120, // ~2 мин между бесплатными бустерами
+  BOOSTER_CARD_CHANCE: 0.15,
+  AD_COOLDOWN_TICKS: 120,           // = free cooldown (совместимость)
+  AD_WATCH_SECONDS: 8,              // только для simulate / dev
+  // Ссылка магазина поддержки / доната (владелец подставляет свою).
+  PREMIUM_SHOP_URL: 'https://www.donationalerts.com/r/j_miles',
+  PREMIUM_SHOP_LABEL: 'DonationAlerts · поддержать автора',
+
+  /**
+   * Реклама — см. core/cs-ads.js
+   * Для РФ: provider 'yandex' + Rewarded-блок РСЯ + fullpage на HTTPS-домене.
+   * В chrome-extension:// yandex автоматически падает в simulate.
+   */
+  ADS: {
+    provider: 'simulate',      // 'simulate' | 'yandex'
+    yandexBlockId: '',         // ID блока, напр. R-A-XXXXXX-Y
+    yandexPlatform: 'desktop'  // 'desktop' | 'touch'
+  }
+};
+
+// ---- Облако (Supabase) ----
+// Publishable key (sb_publishable_...) вставьте в anonKey.
+// service_role / secret в расширение НЕ класть.
+CS.CLOUD = {
+  url: 'https://agrsvzssbyhutovflxgv.supabase.co',
+  anonKey: 'ВСТАВЬТЕ_СЮДА_PUBLISHABLE_KEY'
 };

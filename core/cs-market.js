@@ -165,17 +165,20 @@ CS.buyProperty = function (state, id) {
   if (state.cash < cost) return { success: false, reason: 'cash', cost };
 
   state.cash -= cost;
+  const cashback = typeof CS.applyCashback === 'function' ? CS.applyCashback(state, cost) : 0;
   state.properties[id] = (state.properties[id] || 0) + 1;
   CS.ensureInvest(state).realtyPrices[id] = CS.propertyCost(state, id);
   if (state.lifetime) state.lifetime.purchases = (state.lifetime.purchases || 0) + 1;
 
+  let hist = `Куплен объект «${prop.name}» №${state.properties[id]} (-${cost})`;
+  if (cashback > 0) hist += ` (кэшбэк +${cashback})`;
   state.history.unshift({
     type: 'realty',
-    text: `Куплен объект «${prop.name}» №${state.properties[id]} (-${cost})`,
+    text: hist,
     time: new Date().toLocaleTimeString()
   });
   state.history = state.history.slice(0, 20);
-  return { success: true, cost };
+  return { success: true, cost, cashback };
 };
 
 CS.sellProperty = function (state, id) {

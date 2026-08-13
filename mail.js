@@ -59,7 +59,11 @@ function bindUi() {
 }
 
 function messagesIn(folder) {
-  return (state.mail.messages || []).filter((m) => m.folder === folder);
+  const all = state.mail.messages || [];
+  if (folder === 'deals') {
+    return all.filter((m) => m.folder === 'inbox' && m.deal && (m.deal.thread || m.deal.orderUid));
+  }
+  return all.filter((m) => m.folder === folder);
 }
 
 function renderAll() {
@@ -71,7 +75,7 @@ function renderAll() {
 }
 
 function renderCounts() {
-  ['inbox', 'sent', 'spam', 'trash', 'drafts'].forEach((f) => {
+  ['inbox', 'deals', 'sent', 'spam', 'trash', 'drafts'].forEach((f) => {
     const el = document.getElementById('cnt-' + f);
     if (!el) return;
     const list = messagesIn(f);
@@ -105,13 +109,13 @@ function renderList() {
   const msgs = messagesIn(currentFolder).slice().sort((a, b) => (b.time || '').localeCompare(a.time || ''));
 
   if (!msgs.length) {
-    list.innerHTML = '<div style="padding:12px;font-size:11px;color:#888;">Папка пуста</div>';
+    list.innerHTML = '<div style="padding:12px;font-size:11px;color:#888;">' + (CS.t ? CS.t('mail.empty_folder') : '') + '</div>';
     return;
   }
 
   msgs.forEach((m) => {
     const row = document.createElement('div');
-    row.className = 'mail-row' + (m.read ? '' : ' unread') + (m.id === selectedId ? ' selected' : '');
+    row.className = 'mail-row' + (m.read ? '' : ' unread') + (m.id === selectedId ? ' selected' : '') + (m.deal ? ' deal-row' : '');
     const date = formatDate(m.time);
     const from = currentFolder === 'sent' ? (m.to || '') : (m.from || '');
     row.innerHTML = `
@@ -132,13 +136,57 @@ function renderList() {
   });
 }
 
+function renderThreadHtml(deal) {
+  const msgs = deal.messages || [];
+  const name = deal.clientName || (CS.t ? CS.t('mail.client') : 'Client');
+  const avatar = deal.clientAvatar || '👤';
+  let html = '<div class="thread-head">' +
+    '<div class="thread-title">💬 ' + escapeHtml(deal.title || (CS.t ? CS.t('mail.deal') : 'Deal')) + '</div>' +
+    '<div class="thread-meta">' + escapeHtml(avatar + ' ' + name) +
+    (deal.reward != null ? ' · ' + deal.reward + '💰' : '') +
+    (deal.deadlineMax != null ? ' · ⏱ ' + deal.deadlineMax + 'с' : '') +
+    ' · ' + (deal.phase === 'negotiating' ? (CS.t ? CS.t('mail.phase_nego') : 'nego') : (deal.phase === 'active' ? (CS.t ? CS.t('mail.phase_work') : 'work') : deal.phase || '')) +
+    '</div></div>';
+  html += '<div class="thread-list">';
+  if (!msgs.length) {
+    html += (CS.t ? CS.t('m.ca0a765a44') : '<div class="thread-empty">Пока нет сообщений</div>');
+  } else {
+    msgs.forEach((msg) => {
+      const mine = msg.from === 'me';
+      html += '<div class="thread-bubble ' + (mine ? 'me' : 'npc') + '">' +
+        '<div class="thread-who">' + (mine ? (CS.t ? CS.t('mail.you') : 'You') : escapeHtml(name)) +
+        '<span class="thread-time">' + escapeHtml(msg.time || '') + '</span></div>' +
+        '<div class="thread-text">' + escapeHtml(msg.text || '').replace(/\n/g, '<br>') + '</div>' +
+        '</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
 function renderView() {
   const view = document.getElementById('mailView');
   const m = (state.mail.messages || []).find((x) => x.id === selectedId);
   if (!m) {
-    view.innerHTML = '<div class="mail-view-empty">Выберите письмо</div>';
+    view.innerHTML = '<div class="mail-view-empty">' + (CS.t ? CS.t('mail.pick') : '') + '</div>';
     return;
   }
+  let actionsHtml = '';
+  if (m.deal && m.deal.actions && m.deal.actions.length && m.folder === 'inbox') {
+    actionsHtml = '<div class="mail-deal-actions">' +
+      (CS.t ? CS.t('m.4ddcd36d59') : '<div class="mail-deal-hint">Быстрый ответ в треде:</div>') +
+      m.deal.actions.map((a) =>
+        '<button type="button" class="win95-btn bevel-out mail-deal-btn" data-deal-action="' +
+        escapeHtml(a.id) + '" data-mail-id="' + m.id + '">' + escapeHtml(a.label) + '</button>'
+      ).join(' ') +
+      '</div>';
+  }
+
+  const isThread = m.deal && (m.deal.thread || (m.deal.messages && m.deal.messages.length));
+  const bodyHtml = isThread
+    ? renderThreadHtml(m.deal)
+    : '<div class="mail-view-body">' + escapeHtml(m.body || '').replace(/\n/g, '<br>') + '</div>';
+
   view.innerHTML = `
     <div class="mail-view-header">
       <div class="subj">${escapeHtml(m.subject || '(без темы)')}</div>
@@ -148,7 +196,28 @@ function renderView() {
         Дата: ${formatDate(m.time, true)}
       </div>
     </div>
-    <div class="mail-view-body">${escapeHtml(m.body || '')}</div>`;
+    ${bodyHtml}
+    ${actionsHtml}`;
+
+  view.querySelectorAll('[data-deal-action]').forEach((btn) => {
+    btn.addEventListener('click', onDealAction);
+  });
+  const list = view.querySelector('.thread-list');
+  if (list) list.scrollTop = list.scrollHeight;
+}
+
+async function onDealAction(e) {
+  const btn = e.currentTarget;
+  const actionId = btn.getAttribute('data-deal-action');
+  const mailId = Number(btn.getAttribute('data-mail-id'));
+  state = await CS.loadState();
+  if (typeof CS.handleMailDealAction !== 'function') return;
+  const r = CS.handleMailDealAction(state, mailId, actionId);
+  CS.saveState(state);
+  renderAll();
+  if (r && r.started) {
+    // лёгкая подсказка в теме не нужна
+  }
 }
 
 function updateToolbar() {

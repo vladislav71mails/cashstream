@@ -190,8 +190,54 @@ CS.ACHIEVEMENTS = [
     icon: '🧯',
     condition: (s) => (s.lifetime && s.lifetime.eventsHandled >= 15),
     reward: { cash: 200, focus: 20 }
+  },
+  {
+    id: 'booster_1',
+    title: 'Первый буст',
+    desc: 'Активируйте любой временный бустер',
+    icon: '⚡',
+    condition: (s) => s.boosters && (s.boosters.boostersUsed || 0) >= 1,
+    reward: { cash: 30, focus: 10 }
+  },
+  {
+    id: 'booster_ads_3',
+    title: 'Зритель рекламы',
+    desc: 'Посмотрите 3 рекламных ролика за награды',
+    icon: '📺',
+    condition: (s) => s.boosters && (s.boosters.adsWatched || 0) >= 3,
+    reward: { cash: 80 }
+  },
+  {
+    id: 'cards_3',
+    title: 'Коллекционер',
+    desc: 'Соберите 3 коллекционные карточки',
+    icon: '🃏',
+    condition: (s) => s.boosters && Object.keys(s.boosters.cards || {}).length >= 3,
+    reward: { cash: 120 }
+  },
+  {
+    id: 'cards_all',
+    title: 'Полная колода',
+    desc: 'Соберите все коллекционные карточки',
+    icon: '👑',
+    condition: (s) => s.boosters && Object.keys(s.boosters.cards || {}).length >= (CS.CARD_DEFS ? CS.CARD_DEFS.length : 8),
+    reward: { cash: 350, focus: 25 }
   }
 ];
+
+
+CS.achTitle = function (def) {
+  if (!def) return '';
+  var key = 'ach.' + def.id + '.title';
+  if (CS.t && CS.I18N && CS.I18N[CS.getLang()] && CS.I18N[CS.getLang()][key]) return CS.t(key);
+  return def.title || key;
+};
+CS.achDesc = function (def) {
+  if (!def) return '';
+  var key = 'ach.' + def.id + '.desc';
+  if (CS.t && CS.I18N && CS.I18N[CS.getLang()] && CS.I18N[CS.getLang()][key]) return CS.t(key);
+  return def.desc || key;
+};
 
 CS.ensureAchievements = function (state) {
   if (!state.achievements || typeof state.achievements !== 'object') {
@@ -223,13 +269,17 @@ CS.tryUnlockAchievement = function (state, id) {
   }
   state.history.unshift({
     type: 'achievement',
-    text: `🏆 Достижение: «${def.title}»` + (reward.cash ? ` (+${reward.cash}💰)` : '') + (reward.focus ? ` (+${reward.focus}⭐)` : ''),
+    text: (CS.t ? CS.t('ach.unlocked', { title: CS.achTitle(def) }) : ('🏆 ' + def.title)) + (reward.cash ? ` (+${reward.cash}💰)` : '') + (reward.focus ? ` (+${reward.focus}⭐)` : ''),
     time: new Date().toLocaleTimeString()
   });
   state.history = state.history.slice(0, 20);
-  // очередь тостов для UI
-  if (!state._achievementQueue) state._achievementQueue = [];
-  state._achievementQueue.push({ id: def.id, title: def.title, icon: def.icon, reward });
+  // Очередь тостов только в runtime (не в state / storage — иначе дубли)
+  if (!CS._achToastQueue) CS._achToastQueue = [];
+  if (!CS._achToastShown) CS._achToastShown = {};
+  if (!CS._achToastShown[def.id]) {
+    CS._achToastShown[def.id] = Date.now();
+    CS._achToastQueue.push({ id: def.id, title: CS.achTitle(def), icon: def.icon, reward });
+  }
   return def;
 };
 
@@ -270,11 +320,18 @@ CS.achievementProgressList = function (state) {
       progress = { current: state.equipLevel || 0, need: 3 };
     } else if (def.id === 'cash_500' || def.id === 'cash_2000') {
       progress = { current: Math.floor(state.cash || 0), need: def.id === 'cash_500' ? 500 : 2000 };
+    } else if (def.id === 'booster_1') {
+      progress = { current: (state.boosters && state.boosters.boostersUsed) || 0, need: 1 };
+    } else if (def.id === 'booster_ads_3') {
+      progress = { current: (state.boosters && state.boosters.adsWatched) || 0, need: 3 };
+    } else if (def.id === 'cards_3' || def.id === 'cards_all') {
+      const need = def.id === 'cards_3' ? 3 : (CS.CARD_DEFS ? CS.CARD_DEFS.length : 8);
+      progress = { current: state.boosters ? Object.keys(state.boosters.cards || {}).length : 0, need };
     }
     return {
       id: def.id,
-      title: def.title,
-      desc: def.desc,
+      title: CS.achTitle(def),
+      desc: CS.achDesc(def),
       icon: def.icon,
       unlocked,
       unlockedAt: unlocked ? state.achievements.unlocked[def.id] : null,
@@ -287,31 +344,15 @@ CS.achievementProgressList = function (state) {
 // ---- Обучение (tutorial) -------------------------------------------------
 
 CS.TUTORIAL_STEPS = [
-  {
-    id: 'welcome',
-    title: 'Добро пожаловать в КЭШ.СТРИМ',
-    body: 'Вы — фрилансер в офисе 90-х. Зарабатывайте кликами и квестами, не выгорайте и следите за арендой.\n\nСейчас действует льготный период: аренда ещё не списывается. У вас есть время освоиться.'
-  },
-  {
-    id: 'work',
-    title: 'Рабочая зона',
-    body: 'Откройте «Работа.exe» (двойной клик по значку) и кликайте по зоне. Чем быстрее клики — тем выше комбо и доход.\n\nСледите за Фокусом: без него эффективность падает.'
-  },
-  {
-    id: 'quests',
-    title: 'Задания',
-    body: 'В «Задачи.exe» видно текущую цепочку шагов: клики, поиск ошибок, головоломки.\n\nЗавершите первую цепочку — получите награду и запустите экономику офиса (аренду).'
-  },
-  {
-    id: 'upgrades',
-    title: 'Апгрейды и стажёры',
-    body: 'В окне Задач можно улучшить оборудование (дороже клик), купить кофе (дешевле фокус) и нанять стажёров (пассивный доход).\n\nПервая покупка тоже снимает льготный период.'
-  },
-  {
-    id: 'economy',
-    title: 'Экономика',
-    body: 'После льготы каждые 30 секунд списывается аренда. Не хватает денег — растёт долг и выгорание.\n\nБанк, инвестиции и казино помогут (или навредят). Удачи!'
-  }
+  { id: 'welcome', titleKey: 'tut.welcome.title', bodyKey: 'tut.welcome.body' },
+  { id: 'desktop', titleKey: 'tut.desktop.title', bodyKey: 'tut.desktop.body' },
+  { id: 'cloud',   titleKey: 'tut.cloud.title',   bodyKey: 'tut.cloud.body', showAuth: true },
+  { id: 'quests',  titleKey: 'tut.quests.title',  bodyKey: 'tut.quests.body' },
+  { id: 'work',    titleKey: 'tut.work.title',    bodyKey: 'tut.work.body' },
+  { id: 'staff',   titleKey: 'tut.staff.title',   bodyKey: 'tut.staff.body' },
+  { id: 'office',  titleKey: 'tut.office.title',  bodyKey: 'tut.office.body' },
+  { id: 'economy', titleKey: 'tut.economy.title', bodyKey: 'tut.economy.body' },
+  { id: 'ready',   titleKey: 'tut.ready.title',   bodyKey: 'tut.ready.body' }
 ];
 
 CS.advanceTutorial = function (state) {
@@ -326,6 +367,13 @@ CS.advanceTutorial = function (state) {
   return { done: false, step: state.tutorialStep };
 };
 
+/** Шаг назад по обучению (не ниже 0). */
+CS.backTutorial = function (state) {
+  if (state.tutorialDone) return { done: true };
+  state.tutorialStep = Math.max(0, (state.tutorialStep || 0) - 1);
+  return { done: false, step: state.tutorialStep };
+};
+
 CS.skipTutorial = function (state) {
   state.tutorialDone = true;
   state.tutorialStep = CS.TUTORIAL_STEPS.length;
@@ -336,4 +384,11 @@ CS.currentTutorialStep = function (state) {
   if (state.tutorialDone) return null;
   const idx = Math.min(state.tutorialStep || 0, CS.TUTORIAL_STEPS.length - 1);
   return CS.TUTORIAL_STEPS[idx];
+};
+
+/** Пока обучение не пройдено — полная пауза симуляции (нет тика времени). */
+CS.isGamePaused = function (state) {
+  if (!state) return true;
+  if (!state.tutorialDone) return true;
+  return false;
 };

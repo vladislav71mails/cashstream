@@ -1,6 +1,6 @@
 // ============================================================================
 // «ЭЦП и СКЗИ» — покупка токена, драйверов и лицензии СКЗИ. Эти три флага
-// нужны Статистика.exe (1С) для сдачи отчётности. Четвёртая зависимость —
+// нужны Отчетность.exe (кабинет учёта) для сдачи отчётности. Четвёртая зависимость —
 // КриптоПро CSP — устанавливается отдельно через Магазин приложений.exe,
 // эта программа только показывает её статус в режиме "только чтение".
 // ============================================================================
@@ -16,11 +16,13 @@ const COSTS = {
 async function init() {
   try {
     state = await CS.loadState();
+    if (CS.bootI18n) await CS.bootI18n(state);
+    else if (CS.applyI18n) CS.applyI18n(document);
     render();
 
-    document.getElementById('buyTokenBtn').addEventListener('click', () => buy('tokenBought', COSTS.token, 'Куплен USB-токен'));
-    document.getElementById('buyDriversBtn').addEventListener('click', () => buy('edsDrivers', COSTS.drivers, 'Установлены драйверы ЭЦП'));
-    document.getElementById('buySkziBtn').addEventListener('click', () => buy('skziLicense', COSTS.skzi, 'Куплена лицензия СКЗИ'));
+    document.getElementById('buyTokenBtn').addEventListener('click', () => buy('tokenBought', COSTS.token, CS.t ? CS.t('crypto.buy_token') : 'token'));
+    document.getElementById('buyDriversBtn').addEventListener('click', () => buy('edsDrivers', COSTS.drivers, CS.t ? CS.t('crypto.buy_drivers') : 'drivers'));
+    document.getElementById('buySkziBtn').addEventListener('click', () => buy('skziLicense', COSTS.skzi, CS.t ? CS.t('crypto.buy_skzi') : 'skzi'));
 
     CS.onStateChanged((newState) => {
       state = newState;
@@ -61,14 +63,14 @@ function renderField(statusId, btnId, done, price) {
   const btn = document.getElementById(btnId);
 
   if (done) {
-    statusEl.textContent = '✅ Оформлено';
+    statusEl.textContent = CS.t ? CS.t('crypto.done') : 'OK';
     statusEl.className = 'crypto-card-status status-ok';
-    btn.textContent = '✅ Готово';
+    btn.textContent = CS.t ? CS.t('crypto.ready') : 'OK';
     btn.disabled = true;
   } else {
-    statusEl.textContent = '❌ Не оформлено';
+    statusEl.textContent = CS.t ? CS.t('crypto.not_done') : '—';
     statusEl.className = 'crypto-card-status status-missing';
-    btn.textContent = `Купить за ${price}💰`;
+    btn.textContent = CS.t ? CS.t('crypto.buy_for', { n: price }) : String(price);
     btn.disabled = false;
   }
 }
@@ -83,10 +85,10 @@ function render() {
 
   const cryptoproEl = document.getElementById('cryptoproStatus');
   if (onec.cryptoproInstalled) {
-    cryptoproEl.textContent = '✅ Установлено';
+    cryptoproEl.textContent = CS.t ? CS.t('crypto.installed') : 'OK';
     cryptoproEl.className = 'crypto-card-status status-ok';
   } else {
-    cryptoproEl.textContent = '❌ Не установлено — купите в Магазин приложений.exe';
+    cryptoproEl.textContent = CS.t ? CS.t('crypto.not_installed') : '—';
     cryptoproEl.className = 'crypto-card-status status-missing';
   }
 }

@@ -11,15 +11,15 @@
 
     <div class="bank-topbar bevel-in">
       <div class="wallet">💰 <span id="walletCash">0</span></div>
-      <div class="bank-credit-score">⭐ Кредитный рейтинг: <span id="creditScore">A</span></div>
-      <div class="bank-debt">💳 Общий долг: <span id="totalDebt">0</span>💰</div>
+      <div class="bank-credit-score"><span data-i18n="bank.credit_score">⭐ Кредитный рейтинг</span>: <span id="creditScore">A</span></div>
+      <div class="bank-debt"><span data-i18n="bank.total_debt">💳 Общий долг</span>: <span id="totalDebt">0</span>💰</div>
     </div>
 
     <div class="bank-tabs">
-      <button id="depositsTab" class="win95-btn bevel-out bank-tab active">💰 Депозиты</button>
-      <button id="loansTab" class="win95-btn bevel-out bank-tab">💳 Кредиты</button>
-      <button id="mortgageTab" class="win95-btn bevel-out bank-tab">🏠 Ипотека</button>
-      <button id="historyTab" class="win95-btn bevel-out bank-tab">📊 История</button>
+      <button id="depositsTab" class="win95-btn bevel-out bank-tab active" data-i18n="bank.tab.deposits">💰 Депозиты</button>
+      <button id="loansTab" class="win95-btn bevel-out bank-tab" data-i18n="bank.tab.loans">💳 Кредиты</button>
+      <button id="mortgageTab" class="win95-btn bevel-out bank-tab" data-i18n="bank.tab.mortgage">🏠 Ипотека</button>
+      <button id="historyTab" class="win95-btn bevel-out bank-tab" data-i18n="bank.tab.history">📊 История</button>
     </div>
 
     <!-- Вкладка "Депозиты" -->
@@ -45,8 +45,8 @@
         <div class="deposit-row">
           <span>Сумма: </span>
           <input type="number" id="depositAmount" value="100" min="1" class="win95-input">
-          <button id="depositAddBtn" class="win95-btn bevel-out bank-btn-success">➕ Пополнить</button>
-          <button id="depositWithdrawBtn" class="win95-btn bevel-out bank-btn-danger">➖ Снять</button>
+          <button id="depositAddBtn" class="win95-btn bevel-out bank-btn-success" data-i18n="bank.deposit_add">➕ Пополнить</button>
+          <button id="depositWithdrawBtn" class="win95-btn bevel-out bank-btn-danger" data-i18n="bank.deposit_withdraw">➖ Снять</button>
         </div>
         <div class="deposit-stats">
           Всего на депозитах: <span id="totalDeposits">0</span>💰 · 
@@ -79,7 +79,7 @@
           <span>Сумма: </span>
           <input type="number" id="loanAmount" value="500" min="100" step="100" class="win95-input">
           <span id="loanMaxHint" style="font-size:11px;color:#666;"></span>
-          <button id="takeLoanBtn" class="win95-btn bevel-out bank-btn-warning">💰 Взять кредит</button>
+          <button id="takeLoanBtn" class="win95-btn bevel-out bank-btn-warning" data-i18n="bank.take_loan">💰 Взять кредит</button>
         </div>
         <div class="loan-stats">
           Активных кредитов: <span id="activeLoans">0</span> · 

@@ -32,7 +32,7 @@ const rouletteNumbers = [
 let rouletteCanvas = null;
 let rouletteCtx = null;
 let rouletteRotation = 0;
-const rouletteRadius = 140;
+const rouletteRadius = 92;
 
 document.addEventListener('DOMContentLoaded', async function () {
     try {
@@ -62,8 +62,8 @@ function initializeRouletteCanvas() {
     rouletteCanvas = document.getElementById('rouletteCanvas');
     if (!rouletteCanvas) return;
     rouletteCtx = rouletteCanvas.getContext('2d');
-    rouletteCanvas.width = 300;
-    rouletteCanvas.height = 300;
+    rouletteCanvas.width = 200;
+    rouletteCanvas.height = 200;
     drawRoulette();
 }
 
@@ -111,7 +111,7 @@ function drawRoulette() {
         rouletteCtx.translate(textX, textY);
         rouletteCtx.rotate(textAngle + Math.PI / 2);
         rouletteCtx.fillStyle = 'white';
-        rouletteCtx.font = 'bold 12px Arial';
+        rouletteCtx.font = 'bold 9px Arial';
         rouletteCtx.textAlign = 'center';
         rouletteCtx.textBaseline = 'middle';
         rouletteCtx.fillText(sectorData.number.toString(), 0, 0);
@@ -130,37 +130,64 @@ function drawRoulette() {
 }
 
 function createMiniRoulette() {
-    const betGroup = document.querySelector('.bet-group:nth-child(3)');
-    if (!betGroup) return;
-
-    let miniRoulette = document.querySelector('.mini-roulette');
-    if (!miniRoulette) {
-        miniRoulette = document.createElement('div');
-        miniRoulette.className = 'mini-roulette';
-        const numberBets = betGroup.querySelector('.number-bets');
-        if (numberBets) numberBets.after(miniRoulette);
-    }
+    const miniRoulette = document.getElementById('numberGrid') || document.querySelector('.mini-roulette');
+    if (!miniRoulette) return;
 
     miniRoulette.innerHTML = '';
-    rouletteNumbers.forEach(item => {
-        const miniNumber = document.createElement('div');
-        miniNumber.className = `mini-number ${item.color}`;
+
+    // Порядок для стола: 0, затем 1…36 (не порядок на колесе)
+    const byNumber = {};
+    rouletteNumbers.forEach((item) => { byNumber[item.number] = item; });
+    const boardOrder = [0];
+    for (let n = 1; n <= 36; n++) boardOrder.push(n);
+
+    boardOrder.forEach((num) => {
+        const item = byNumber[num];
+        if (!item) return;
+        const miniNumber = document.createElement('button');
+        miniNumber.type = 'button';
+        miniNumber.className = `mini-number ${item.color}` + (item.number === 0 ? ' zero' : '');
         miniNumber.textContent = item.number;
         miniNumber.dataset.number = item.number;
         miniNumber.dataset.color = item.color;
+        miniNumber.title = `Число ${item.number} (×35)`;
 
         miniNumber.addEventListener('click', function () {
             if (isSpinning) return;
-            document.querySelectorAll('.mini-number').forEach(n => n.classList.remove('active'));
-            document.querySelectorAll('.number-bet').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.bet-option').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.mini-number').forEach((n) => n.classList.remove('active'));
+            document.querySelectorAll('.bet-option').forEach((b) => b.classList.remove('active'));
             this.classList.add('active');
             currentBetType = 'number';
             currentBetValue = item.number;
-            document.getElementById('selectedNumber').textContent = item.number;
+            const sel = document.getElementById('selectedNumber');
+            if (sel) sel.textContent = String(item.number);
         });
 
         miniRoulette.appendChild(miniNumber);
+    });
+}
+
+function setRouletteBet(amount) {
+    amount = Math.max(1, Math.floor(Number(amount) || 0));
+    if (balance > 0) amount = Math.min(amount, Math.floor(balance));
+    currentBet = amount;
+    const el = document.getElementById('currentBet');
+    if (el) el.textContent = String(currentBet);
+    const custom = document.getElementById('customBet');
+    if (custom && document.activeElement !== custom) custom.value = '';
+    document.querySelectorAll('.bet-btn').forEach((b) => {
+        b.classList.toggle('active', parseInt(b.dataset.amount, 10) === currentBet);
+    });
+}
+
+function setSlotBet(amount) {
+    amount = Math.max(1, Math.floor(Number(amount) || 0));
+    if (balance > 0) amount = Math.min(amount, Math.floor(balance));
+    slotBet = amount;
+    const el = document.getElementById('slotBet');
+    if (el) el.textContent = String(slotBet);
+    document.querySelectorAll('.slot-bet-btn').forEach((b) => {
+        b.classList.toggle('active', parseInt(b.dataset.amount, 10) === slotBet);
     });
 }
 
@@ -168,53 +195,58 @@ function initializeEventListeners() {
     document.getElementById('rouletteTab').addEventListener('click', () => switchGame('roulette'));
     document.getElementById('slotsTab').addEventListener('click', () => switchGame('slots'));
 
-    document.querySelectorAll('.bet-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentBet = parseInt(this.dataset.amount);
-            document.getElementById('currentBet').textContent = currentBet;
-        });
-    });
-
-    document.querySelectorAll('.slot-bet-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.slot-bet-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            slotBet = parseInt(this.dataset.amount);
-            document.getElementById('slotBet').textContent = slotBet;
-        });
-    });
-
-    document.querySelectorAll('.bet-option').forEach(btn => {
+    document.querySelectorAll('.bet-btn').forEach((btn) => {
         btn.addEventListener('click', function () {
             if (isSpinning) return;
-            const group = this.parentNode;
-            group.querySelectorAll('.bet-option').forEach(b => b.classList.remove('active'));
+            setRouletteBet(parseInt(this.dataset.amount, 10));
+        });
+    });
+
+    document.querySelectorAll('.slot-bet-btn').forEach((btn) => {
+        btn.addEventListener('click', function () {
+            if (isSpinning) return;
+            setSlotBet(parseInt(this.dataset.amount, 10));
+        });
+    });
+
+    const customBet = document.getElementById('customBet');
+    if (customBet) {
+        customBet.addEventListener('change', () => {
+            if (isSpinning) return;
+            setRouletteBet(customBet.value);
+        });
+        customBet.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                setRouletteBet(customBet.value);
+            }
+        });
+    }
+
+    const betHalf = document.getElementById('betHalf');
+    if (betHalf) betHalf.addEventListener('click', () => { if (!isSpinning) setRouletteBet(Math.max(1, Math.floor(currentBet / 2))); });
+    const betDouble = document.getElementById('betDouble');
+    if (betDouble) betDouble.addEventListener('click', () => { if (!isSpinning) setRouletteBet(currentBet * 2); });
+    const betAllIn = document.getElementById('betAllIn');
+    if (betAllIn) betAllIn.addEventListener('click', () => { if (!isSpinning) setRouletteBet(Math.floor(balance)); });
+
+    const slotHalf = document.getElementById('slotHalf');
+    if (slotHalf) slotHalf.addEventListener('click', () => { if (!isSpinning) setSlotBet(Math.max(1, Math.floor(slotBet / 2))); });
+    const slotDouble = document.getElementById('slotDouble');
+    if (slotDouble) slotDouble.addEventListener('click', () => { if (!isSpinning) setSlotBet(slotBet * 2); });
+    const slotAllIn = document.getElementById('slotAllIn');
+    if (slotAllIn) slotAllIn.addEventListener('click', () => { if (!isSpinning) setSlotBet(Math.floor(balance)); });
+
+    document.querySelectorAll('.bet-option').forEach((btn) => {
+        btn.addEventListener('click', function () {
+            if (isSpinning) return;
+            document.querySelectorAll('.bet-option').forEach((b) => b.classList.remove('active'));
+            document.querySelectorAll('.mini-number').forEach((n) => n.classList.remove('active'));
             this.classList.add('active');
             currentBetType = this.dataset.type;
             currentBetValue = this.dataset.value;
-            if (currentBetType !== 'number') {
-                document.querySelectorAll('.mini-number').forEach(n => n.classList.remove('active'));
-                document.querySelectorAll('.number-bet').forEach(b => b.classList.remove('active'));
-                document.getElementById('selectedNumber').textContent = 'нет';
-            }
-        });
-    });
-
-    document.querySelectorAll('.number-bet').forEach(btn => {
-        btn.addEventListener('click', function () {
-            if (isSpinning) return;
-            document.querySelectorAll('.number-bet').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.mini-number').forEach(n => n.classList.remove('active'));
-            document.querySelectorAll('.bet-option').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const number = this.dataset.value;
-            const miniNumber = document.querySelector(`.mini-number[data-number="${number}"]`);
-            if (miniNumber) miniNumber.classList.add('active');
-            currentBetType = 'number';
-            currentBetValue = number;
-            document.getElementById('selectedNumber').textContent = number;
+            const sel = document.getElementById('selectedNumber');
+            if (sel) sel.textContent = CS.t ? CS.t('casino.none') : 'none';
         });
     });
 
@@ -255,18 +287,25 @@ function renderHistory() {
 function spinRoulette() {
     if (isSpinning) return;
     if (balance < currentBet) {
-        document.getElementById('rouletteResult').textContent = 'Недостаточно средств!';
+        document.getElementById('rouletteResult').textContent = CS.t ? CS.t('casino.no_funds') : 'No funds';
         return;
     }
     if (!currentBetType || !currentBetValue) {
-        document.getElementById('rouletteResult').textContent = 'Выберите тип ставки!';
+        document.getElementById('rouletteResult').textContent = CS.t ? CS.t('casino.pick_type') : 'Pick bet';
         return;
     }
 
     isSpinning = true;
     const spinBtn = document.getElementById('spinRoulette');
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Крутится...';
+    spinBtn.textContent = CS.t ? CS.t('casino.spinning') : '...';
+
+    if (CS.Audio) {
+      CS.Audio.play(csState, 'roulette_spin');
+      if (window._rouletteLoop && window._rouletteLoop.stop) window._rouletteLoop.stop();
+      // тики ускоряются мысленно: частые щелчки ~3 с
+      window._rouletteLoop = CS.Audio.startLoop(csState, 'roulette_tick', 70, 3200);
+    }
 
     balance -= currentBet;
     updateBalance();
@@ -316,12 +355,25 @@ function animateRoulette(startTime, duration, startRotation, targetRotation) {
         }
 
         if (progress < 1) {
+            // к концу тики реже — имитация замедления
+            if (progress > 0.75 && window._rouletteLoop && window._rouletteLoop._slowed !== true) {
+                window._rouletteLoop._slowed = true;
+                if (window._rouletteLoop.stop) window._rouletteLoop.stop();
+                if (CS.Audio) {
+                    window._rouletteLoop = CS.Audio.startLoop(csState, 'roulette_tick', 140, 900);
+                }
+            }
             requestAnimationFrame(animate);
         } else {
+            if (window._rouletteLoop && window._rouletteLoop.stop) {
+                window._rouletteLoop.stop();
+                window._rouletteLoop = null;
+            }
+            if (CS.Audio) CS.Audio.play(csState, 'roulette_stop');
             isSpinning = false;
             const spinBtn = document.getElementById('spinRoulette');
             spinBtn.disabled = false;
-            spinBtn.innerHTML = '<i class="fas fa-play"></i> Крутить рулетку';
+            spinBtn.textContent = CS.t ? CS.t('casino.spin') : 'Spin';
             checkRouletteResult();
         }
     };
@@ -382,9 +434,9 @@ async function checkRouletteResult() {
     let colorName = '';
 
     switch (winningColor) {
-        case 'red': colorName = 'красный'; break;
-        case 'black': colorName = 'черный'; break;
-        case 'green': colorName = 'зеленый'; break;
+        case 'red': colorName = CS.t ? CS.t('casino.red') : 'red'; break;
+        case 'black': colorName = CS.t ? CS.t('casino.black') : 'black'; break;
+        case 'green': colorName = CS.t ? CS.t('casino.green') : 'green'; break;
     }
 
     switch (currentBetType) {
@@ -403,7 +455,7 @@ async function checkRouletteResult() {
                 win = true;
                 multiplier = 2;
             }
-            resultText = `Выпало число ${winningNumber} (${winningNumber === 0 ? 'зеро' : isEven ? 'четное' : 'нечетное'})`;
+            resultText = CS.t ? CS.t('casino.rolled', { n: winningNumber, extra: winningNumber === 0 ? CS.t('casino.zero') : (isEven ? CS.t('casino.even') : CS.t('casino.odd')) }) : String(winningNumber);
             break;
         }
         case 'number':
@@ -421,11 +473,13 @@ async function checkRouletteResult() {
         const winnings = currentBet * multiplier;
         balance = csState.cash + winnings;
         CS.applyCasinoResult(csState, winnings, `Биржа: ${resultText}. +${winnings} (x${multiplier})`, true);
+        if (CS.Audio) CS.Audio.play(csState, 'casino_win');
         document.getElementById('rouletteResult').innerHTML =
             `<span class="win">${resultText}. Вы выиграли ${winnings}! Множитель: x${multiplier}</span>`;
     } else {
         balance = csState.cash - currentBet;
         CS.applyCasinoResult(csState, -currentBet, `Биржа: ${resultText}. -${currentBet}`, false);
+        if (CS.Audio) CS.Audio.play(csState, 'casino_lose');
         document.getElementById('rouletteResult').innerHTML =
             `<span class="loss">${resultText}. Вы проиграли ${currentBet}.</span>`;
     }
@@ -442,14 +496,20 @@ async function checkRouletteResult() {
 function spinSlots() {
     if (isSpinning) return;
     if (balance < slotBet) {
-        document.getElementById('slotsResult').textContent = 'Недостаточно средств!';
+        document.getElementById('slotsResult').textContent = CS.t ? CS.t('casino.no_funds') : 'No funds';
         return;
     }
 
     isSpinning = true;
     const spinBtn = document.getElementById('spinSlots');
     spinBtn.disabled = true;
-    spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Крутится...';
+    spinBtn.textContent = CS.t ? CS.t('casino.spinning') : '...';
+
+    if (CS.Audio) {
+        CS.Audio.play(csState, 'slot_spin');
+        if (window._slotLoop && window._slotLoop.stop) window._slotLoop.stop();
+        window._slotLoop = CS.Audio.startLoop(csState, 'slot_tick', 55, 1600);
+    }
 
     balance -= slotBet;
     updateBalance();
@@ -468,10 +528,15 @@ function spinSlots() {
             reel.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
             reel.style.transform = 'translateY(0)';
             reel.style.opacity = '1';
+            if (CS.Audio) CS.Audio.play(csState, 'slot_stop');
         }, index * 200);
     });
 
     setTimeout(() => {
+        if (window._slotLoop && window._slotLoop.stop) {
+            window._slotLoop.stop();
+            window._slotLoop = null;
+        }
         const results = [];
         reels.forEach((reel) => {
             const randomSymbol = slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
@@ -489,13 +554,13 @@ async function checkSlotWin(results) {
 
     if (a === b && b === c) {
         switch (a) {
-            case '💼': winMultiplier = 100; winMessage = 'ДЖЕКПОТ! Тройной кейс'; break;
-            case '🪪': winMultiplier = 50; winMessage = '3 визитки — новые контакты!'; break;
-            case '🖋️': winMultiplier = 20; winMessage = '3 печати — сделка подписана'; break;
-            case '🥂': winMultiplier = 10; winMessage = '3 бокала — сделка отмечена'; break;
-            case '📈': winMultiplier = 5; winMessage = '3 графика роста'; break;
-            case '☕': winMultiplier = 3; winMessage = '3 чашки кофе'; break;
-            case '📎': winMultiplier = 2; winMessage = '3 скрепки'; break;
+            case '💼': winMultiplier = 100; winMessage = CS.t ? CS.t('casino.jackpot') : 'JACKPOT'; break;
+            case '🪪': winMultiplier = 50; winMessage = (CS.t ? CS.t('m.fe14bca995') : '3 визитки — новые контакты!'); break;
+            case '🖋️': winMultiplier = 20; winMessage = (CS.t ? CS.t('m.fc9cc62b8b') : '3 печати — сделка подписана'); break;
+            case '🥂': winMultiplier = 10; winMessage = (CS.t ? CS.t('m.b195e3a28e') : '3 бокала — сделка отмечена'); break;
+            case '📈': winMultiplier = 5; winMessage = (CS.t ? CS.t('m.59fb8b37c8') : '3 графика роста'); break;
+            case '☕': winMultiplier = 3; winMessage = (CS.t ? CS.t('m.aab41688d6') : '3 чашки кофе'); break;
+            case '📎': winMultiplier = 2; winMessage = (CS.t ? CS.t('m.78aee8aa11') : '3 скрепки'); break;
         }
     }
 
@@ -507,11 +572,13 @@ async function checkSlotWin(results) {
             const winnings = slotBet * winMultiplier;
             balance = csState.cash + winnings;
             CS.applyCasinoResult(csState, winnings, `Встреча: ${winMessage}. +${winnings}`, true);
+            if (CS.Audio) CS.Audio.play(csState, 'casino_win');
             document.getElementById('slotsResult').innerHTML =
                 `<span class="win">${winMessage}! Вы выиграли ${winnings}!</span>`;
         } else {
             balance = csState.cash - slotBet;
             CS.applyCasinoResult(csState, -slotBet, `Встреча: ${results.join(' ')}. -${slotBet}`, false);
+            if (CS.Audio) CS.Audio.play(csState, 'casino_lose');
             document.getElementById('slotsResult').innerHTML =
                 `<span class="loss">${results.join(' ')}. Вы проиграли ${slotBet}.</span>`;
         }
@@ -522,6 +589,6 @@ async function checkSlotWin(results) {
 
         isSpinning = false;
         spinBtn.disabled = false;
-        spinBtn.innerHTML = '<i class="fas fa-play"></i> Крутить встречу';
+        spinBtn.textContent = CS.t ? CS.t('casino.spin_meet') : 'Spin';
     }, 1500);
 }

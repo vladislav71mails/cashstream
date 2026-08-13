@@ -16,15 +16,17 @@ const CRYPTO_CONFIG = typeof CS !== 'undefined' && CS.CRYPTO_ASSETS ? CS.CRYPTO_
 
 // Конфигурация майнингового оборудования (+ параметры риска)
 const MINING_CONFIG = [
-  { id: 'asic',  name: 'ASIC Майнер',      cost: 5000, hashrate: 100, powerCost: 2,   focusCost: 0.5, breakChance: 0.010, hackChance: 0.006, theftChance: 0.005, repairCost: 800 },
-  { id: 'gpu',   name: 'GPU Майнинг',       cost: 2000, hashrate: 40,  powerCost: 1,   focusCost: 0.3, breakChance: 0.014, hackChance: 0.008, theftChance: 0.007, repairCost: 350 },
-  { id: 'cpu',   name: 'CPU Майнинг',       cost: 500,  hashrate: 8,   powerCost: 0.3, focusCost: 0.1, breakChance: 0.020, hackChance: 0.010, theftChance: 0.010, repairCost: 90 },
-  { id: 'cloud', name: 'Облачный майнинг',  cost: 1000, hashrate: 20,  powerCost: 0.5, focusCost: 0,   breakChance: 0.004, hackChance: 0.018, theftChance: 0.002, repairCost: 150 }
+  { id: 'asic',  name: (CS.t ? CS.t('m.5393036b21') : 'ASIC Майнер'),      cost: 5000, hashrate: 100, powerCost: 2,   focusCost: 0.5, breakChance: 0.010, hackChance: 0.006, theftChance: 0.005, repairCost: 800 },
+  { id: 'gpu',   name: (CS.t ? CS.t('m.3f5b15c122') : 'GPU Майнинг'),       cost: 2000, hashrate: 40,  powerCost: 1,   focusCost: 0.3, breakChance: 0.014, hackChance: 0.008, theftChance: 0.007, repairCost: 350 },
+  { id: 'cpu',   name: (CS.t ? CS.t('m.e29a36a9af') : 'CPU Майнинг'),       cost: 500,  hashrate: 8,   powerCost: 0.3, focusCost: 0.1, breakChance: 0.020, hackChance: 0.010, theftChance: 0.010, repairCost: 90 },
+  { id: 'cloud', name: (CS.t ? CS.t('inv.miner_cloud') : 'Облачный майнинг') /* use CS.t inv.miner_cloud in UI */,  cost: 1000, hashrate: 20,  powerCost: 0.5, focusCost: 0,   breakChance: 0.004, hackChance: 0.018, theftChance: 0.002, repairCost: 150 }
 ];
 
 async function init() {
   try {
     state = await CS.loadState();
+    if (CS.bootI18n) await CS.bootI18n(state);
+    else { if (CS.syncLangFromState) CS.syncLangFromState(state); if (CS.applyI18n) CS.applyI18n(document); }
 
     // Инициализация структур данных с защитой от undefined
     if (!state.invest) {
@@ -177,7 +179,7 @@ function getStockTechnicals(stockId) {
   const longMA = sma(history, Math.min(history.length, 12));
   let trend;
   if (shortMA === null || longMA === null) {
-    trend = '⏳ Недостаточно данных';
+    trend = (CS.t ? CS.t('m.3f4eda1815') : '⏳ Недостаточно данных');
   } else {
     const diffPct = ((shortMA - longMA) / longMA) * 100;
     if (diffPct > 1.5) trend = `📈 SMA4 выше SMA12 на ${diffPct.toFixed(1)}% — восходящий тренд`;
@@ -189,9 +191,9 @@ function getStockTechnicals(stockId) {
   const avg = history.slice(-10).reduce((a, b) => a + b, 0) / Math.min(10, history.length);
   const volPct = avg > 0 ? (dev / avg) * 100 : 0;
   let volLabel;
-  if (volPct < 1.5) volLabel = '🟢 низкая';
-  else if (volPct < 4) volLabel = '🟡 средняя';
-  else volLabel = '🔴 высокая';
+  if (volPct < 1.5) volLabel = (CS.t ? CS.t('m.6a137119c0') : '🟢 низкая');
+  else if (volPct < 4) volLabel = (CS.t ? CS.t('m.7f9741f9eb') : '🟡 средняя');
+  else volLabel = (CS.t ? CS.t('m.0aa3b023d3') : '🔴 высокая');
 
   return { trend, vol: `Волатильность: ${volLabel} (${volPct.toFixed(1)}%)` };
 }
@@ -237,14 +239,14 @@ function renderStocks() {
           ${[1, 5, 10, 25].map((n) => `<button class="win95-btn bevel-out qty-btn${n === qty ? ' active' : ''}" data-qty="${n}">${n}</button>`).join('')}
         </div>
         <div class="stock-trade-row">
-          <button class="win95-btn bevel-out buy-btn ${SELECTED_STOCK[s.id] === 'buy' ? 'active' : ''}" data-action="buy">📈 Купить</button>
-          <button class="win95-btn bevel-out sell-btn ${SELECTED_STOCK[s.id] === 'sell' ? 'active' : ''}" data-action="sell">📉 Продать</button>
+          <button class="win95-btn bevel-out buy-btn ${SELECTED_STOCK[s.id] === 'buy' ? 'active' : ''}" data-action="buy">${CS.t ? CS.t('inv.buy') : 'Buy'}</button>
+          <button class="win95-btn bevel-out sell-btn ${SELECTED_STOCK[s.id] === 'sell' ? 'active' : ''}" data-action="sell">${CS.t ? CS.t('inv.sell') : 'Sell'}</button>
         </div>
         <div class="stock-trade-row">
-          <button class="win95-btn bevel-out buy-all-btn" title="Купить максимум на весь доступный кэш">💰 Купить всё (${maxAffordable})</button>
-          <button class="win95-btn bevel-out sell-all-btn" ${holding.shares > 0 ? '' : 'disabled'} title="Продать все акции этой компании">🧾 Продать всё</button>
+          <button class="win95-btn bevel-out buy-all-btn" title="Купить максимум на весь доступный кэш">${CS.t ? CS.t('inv.buy_all', { n: maxAffordable }) : maxAffordable}</button>
+          <button class="win95-btn bevel-out sell-all-btn" ${holding.shares > 0 ? '' : 'disabled'} title="Продать все акции этой компании">${CS.t ? CS.t('inv.sell_all') : 'Sell all'}</button>
         </div>
-        <div class="stock-holding">${holding.shares > 0 ? `У вас: ${holding.shares} шт. · ср. ${holding.avgCost.toFixed(2)}₽` : 'Нет позиции'}</div>
+        <div class="stock-holding">${holding.shares > 0 ? (CS.t ? CS.t('inv.holding', { shares: holding.shares, avg: holding.avgCost.toFixed(2) }) : holding.shares) : (CS.t ? CS.t('inv.no_pos') : '—')}</div>
       </div>
     `;
 
@@ -359,7 +361,7 @@ function renderProperties() {
     card.innerHTML = `
       <div class="property-icon">${p.icon}</div>
       <div>
-        <div class="property-name">${p.name}</div>
+        <div class="property-name">${CS.propertyName ? CS.propertyName(p) : p.name}</div>
         <div class="property-stats">База: +${p.income}💰/с · Содержание: -${p.upkeep}💰/с (за шт.)</div>
         <div class="property-price">${cost}💰 ${owned > 0 ? '(следующий объект)' : ''}</div>
         <div class="property-renovation">🔧 Ремонт: ${renovation}/${renoMax} ур. (доход +${bonusPct}%)</div>
@@ -371,9 +373,9 @@ function renderProperties() {
           <button class="win95-btn bevel-out renovate-btn" ${renovation >= renoMax || state.cash < renoCost ? 'disabled' : ''}>🔧 Улучшить (${Number.isFinite(renoCost) ? renoCost : '—'}💰)</button>
           <button class="win95-btn bevel-out tenant-btn">👤 Найти арендатора</button>
         ` : ''}
-        <button class="win95-btn bevel-out buy-btn" ${affordable ? '' : 'disabled'}>Купить за ${cost}💰</button>
+        <button class="win95-btn bevel-out buy-btn" ${affordable ? '' : 'disabled'}>${CS.t ? CS.t('inv.buy_for', { n: cost }) : cost}</button>
         ${owned > 0 ? `
-          <button class="win95-btn bevel-out sell-prop-btn">💰 Продать</button>
+          <button class="win95-btn bevel-out sell-prop-btn">${CS.t ? CS.t('inv.sell_prop') : 'Sell'}</button>
         ` : ''}
       </div>
     `;
@@ -431,13 +433,13 @@ async function onFindTenant(id) {
   // Поиск арендатора — платная услуга, не «подарок +150»
   const fee = 40 + Math.round(Math.random() * 40);
   if (state.cash < fee) {
-    alert('Не хватает денег на услуги риелтора (' + fee + '💰)');
+    alert(CS.t ? CS.t('inv.realtor_fee', { n: fee }) : fee);
     return;
   }
   state.cash -= fee;
   state.history.unshift({
     type: 'realty',
-    text: `Арендатор (${type === 'residential' ? 'жилой' : 'промышленный'}) для объекта (−${fee})`,
+    text: CS.t ? CS.t('inv.tenant_hired', { type: type === 'residential' ? CS.t('inv.tenant_res') : CS.t('inv.tenant_ind'), n: fee }) : fee,
     time: new Date().toLocaleTimeString()
   });
   state.history = state.history.slice(0, 20);
@@ -472,9 +474,9 @@ function renderCrypto() {
         <div class="crypto-change ${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</div>
       </div>
       <div class="crypto-actions">
-        <button class="win95-btn bevel-out buy-crypto" data-id="${c.id}">Купить</button>
-        <button class="win95-btn bevel-out sell-crypto" data-id="${c.id}">Продать</button>
-        <button class="win95-btn bevel-out sell-all-crypto" data-id="${c.id}" ${balance > 0 ? '' : 'disabled'}>Продать всё</button>
+        <button class="win95-btn bevel-out buy-crypto" data-id="${c.id}">${CS.t ? CS.t('inv.buy_crypto') : 'Buy'}</button>
+        <button class="win95-btn bevel-out sell-crypto" data-id="${c.id}">${CS.t ? CS.t('inv.sell_crypto') : 'Sell'}</button>
+        <button class="win95-btn bevel-out sell-all-crypto" data-id="${c.id}" ${balance > 0 ? '' : 'disabled'}>${CS.t ? CS.t('inv.sell_all_crypto') : 'Sell all'}</button>
         <input type="number" class="win95-input crypto-qty" data-id="${c.id}" value="${qty}" min="0.001" step="0.001" style="width:60px;">
       </div>
     `;
@@ -560,7 +562,7 @@ function renderMining() {
     const value = mined * btcPrice * 0.01;
 
     let statusLine;
-    if (broken) statusLine = `💥 Оборудование сломано (${rec.incident || 'поломка'}) — требуется ремонт`;
+    if (broken) statusLine = (CS.t ? CS.t('inv.miner_broken', { inc: rec.incident || CS.t('inv.break') }) : 'broken');
     else if (isActive) statusLine = `⛏️ Майнинг: +${mined.toFixed(4)} BTC (≈${value.toFixed(1)}💰)`;
     else statusLine = '⏸️ Остановлен';
 
@@ -580,7 +582,7 @@ function renderMining() {
           <button class="win95-btn bevel-out ${isActive ? 'stop-mining' : 'start-mining'}" data-id="${m.id}">
             ${isActive ? '⏹️ Остановить' : '▶️ Запустить'}
           </button>`}
-        ` : `<button class="win95-btn bevel-out buy-miner" data-id="${m.id}">💰 Купить (${m.cost}💰)</button>`}
+        ` : `<button class="win95-btn bevel-out buy-miner" data-id="${m.id}">${CS.t ? CS.t('inv.buy_miner', { n: m.cost }) : m.cost}</button>`}
       </div>
     `;
 
@@ -864,7 +866,7 @@ function investTickMiningOnly(state) {
       if (duration > 5) {
         const roll = Math.random();
         if (roll < m.breakChance / 12) {
-          rec.broken = true; rec.active = false; rec.incident = 'поломка';
+          rec.broken = true; rec.active = false; rec.incident = (CS.t ? CS.t('inv.break') : 'поломка');
         } else if (roll < (m.breakChance + m.hackChance) / 12) {
           const stolen = Math.round(20 + Math.random() * 80);
           state.cash = Math.max(0, state.cash - stolen);
@@ -890,7 +892,7 @@ function updateOptionTimersOnce() {
     const idx = parseInt(el.dataset.idx, 10);
     const opt = state.invest?.options?.find(o => o.id === idx);
     if (!opt || opt.result) {
-      el.textContent = opt?.result === 'win' ? '✅ выигрыш' : (opt?.result === 'lose' ? '❌ проигрыш' : '—');
+      el.textContent = opt?.result === 'win' ? (CS.t ? CS.t('inv.win') : 'win') : (opt?.result === 'lose' ? (CS.t ? CS.t('inv.lose') : 'lose') : '—');
       return;
     }
     const remaining = Math.max(0, (opt.expiry || 45) - (Date.now() - opt.startedAt) / 1000);

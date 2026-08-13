@@ -1,616 +1,458 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-body {
-    width: 500px;
-    min-height: 700px;
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: white;
+html, body {
+  height: 100%;
+  font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  color: #e8e8f0;
+  font-size: 13px;
 }
 
 .container {
-    padding: 20px;
+  padding: 10px 12px 14px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+html, body {
+  overflow-x: hidden;
 }
 
-h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #ffd700;
-    font-size: 24px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+/* ---- Header ---- */
+.break-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.break-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 1px 2px #0008;
+}
+.balance-pill {
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid #ffd700;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.balance-pill strong { color: #ffd700; font-size: 14px; }
+
+.break-note {
+  background: rgba(0, 217, 95, 0.1);
+  border: 1px solid #00d95f88;
+  color: #b9ffd6;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-h1 i {
-    margin-right: 10px;
-}
-
-.balance-section {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 15px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 2px solid #ffd700;
-    backdrop-filter: blur(10px);
-}
-
-.balance {
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.gold {
-    color: #ffd700;
-    margin-left: 5px;
-}
-
-.reset-btn {
-    background: #ff4757;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.reset-btn:hover {
-    background: #ff3742;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 71, 87, 0.4);
-}
-
+/* ---- Tabs ---- */
 .game-selector {
-    display: flex;
-    margin-bottom: 20px;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 5px;
-    border-radius: 10px;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px;
+  border-radius: 8px;
 }
-
 .game-tab {
-    flex: 1;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+  flex: 1;
+  padding: 8px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
 }
-
+.game-tab:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
 .game-tab.active {
-    background: #ffd700;
-    color: #1a1a2e;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  background: #ffd700;
+  color: #1a1a2e;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.25);
 }
 
-.game-section {
-    display: none;
-}
+.game-section { display: none; }
+.game-section.active { display: block; }
 
-.game-section.active {
-    display: block;
+/* ---- Panels ---- */
+.panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
 }
+.panel-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.panel-label.sub { margin-top: 8px; margin-bottom: 4px; color: #c8c8e0; }
 
-.bet-controls {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* ---- Bet chips ---- */
+.bet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
 }
+.chip {
+  min-width: 44px;
+  padding: 7px 8px;
+  background: #3742fa;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background 0.15s, transform 0.1s;
+}
+.chip:hover { background: #5352ed; }
+.chip.active {
+  background: #ffd700;
+  color: #1a1a2e;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.35);
+}
+.chip.util {
+  background: #2f3542;
+  min-width: 36px;
+}
+.chip.util:hover { background: #3d4454; }
+.chip.all-in {
+  background: #c0392b;
+  flex: 1;
+  min-width: 72px;
+}
+.chip.all-in:hover { background: #e74c3c; }
+.chip.all-in.active { background: #ff6b6b; color: #1a1a2e; }
 
-.bet-controls label {
-    display: block;
-    margin-bottom: 10px;
-    color: #ffd700;
-    font-size: 16px;
-    font-weight: bold;
+.bet-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 6px;
 }
-
-.bet-amount {
-    display: flex;
-    gap: 10px;
-    margin: 15px 0;
+.bet-input {
+  width: 72px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #0f1420;
+  color: #fff;
+  font-size: 12px;
 }
-
-.bet-btn, .slot-bet-btn {
-    flex: 1;
-    padding: 12px;
-    background: #3742fa;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.bet-btn:hover, .slot-bet-btn:hover {
-    background: #5352ed;
-    transform: translateY(-2px);
-}
-
-.bet-btn.active, .slot-bet-btn.active {
-    background: #ffd700;
-    color: #1a1a2e;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-}
+.bet-input:focus { outline: 1px solid #ffd700; }
 
 .current-bet {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 18px;
-    color: #ffd700;
-    font-weight: bold;
-    padding: 10px;
-    background: rgba(255, 215, 0, 0.1);
-    border-radius: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #ffd700;
+  font-weight: bold;
+  padding: 5px;
+  background: rgba(255, 215, 0, 0.08);
+  border-radius: 6px;
 }
 
-/* Контейнер для рулетки с Canvas */
+/* ---- Bet options ---- */
+.bet-group.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.bet-option {
+  flex: 1;
+  min-width: 80px;
+  padding: 8px 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: bold;
+  background: #2f3542;
+  color: #eee;
+}
+.bet-option:hover { filter: brightness(1.15); }
+.bet-option.active {
+  outline: 2px solid #ffd700;
+  box-shadow: 0 0 0 1px #ffd70044;
+}
+.red-bet { background: #c0392b; }
+.black-bet { background: #1a1a1a; border: 1px solid #555; }
+.green-bet { background: #1e8449; }
+
+.current-number-bet {
+  font-size: 11px;
+  color: #c8c8e0;
+  margin-top: 4px;
+  text-align: center;
+}
+.current-number-bet span { color: #ffd700; font-weight: bold; }
+
+/* ---- Number grid (ставки на число ×35) ---- */
+.mini-roulette {
+  display: grid;
+  /* 0 сверху на всю ширину + 3 колонки как на столе рулетки */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  padding: 2px;
+}
+.mini-number {
+  aspect-ratio: 1.15;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: clamp(11px, 1.4vw + 8px, 15px);
+  font-weight: bold;
+  cursor: pointer;
+  color: #fff;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: filter 0.12s, transform 0.08s;
+}
+.mini-number.zero {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  min-height: 36px;
+  height: auto;
+  padding: 6px;
+}
+.mini-number.red { background: #c0392b; }
+.mini-number.black { background: #1a1a1a; border-color: #444; }
+.mini-number.green { background: #1e8449; }
+.mini-number:hover { filter: brightness(1.18); }
+.mini-number:active { transform: scale(0.96); }
+.mini-number.active {
+  outline: 2px solid #ffd700;
+  box-shadow: 0 0 8px #ffd700aa;
+  z-index: 1;
+}
+
+/* ---- Roulette layout ---- */
+.layout-roulette {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bets-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+@media (min-width: 520px) {
+  .layout-roulette {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .roulette-side {
+    flex: 0 0 min(240px, 32%);
+    position: sticky;
+    top: 4px;
+  }
+  .bets-side { flex: 1; min-width: 0; }
+}
+/* Широкое / полноэкранное окно: крупнее числа, больше колонок при желании */
+@media (min-width: 720px) {
+  .mini-roulette {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .mini-number {
+    min-height: 40px;
+    aspect-ratio: 1.1;
+  }
+  .mini-number.zero {
+    grid-column: 1 / -1;
+    min-height: 40px;
+  }
+  .roulette-side { flex: 0 0 min(260px, 28%); }
+  .roulette-container {
+    width: min(240px, 100%);
+    height: min(240px, 100%);
+  }
+}
+@media (min-width: 980px) {
+  .mini-roulette {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .mini-number {
+    min-height: 44px;
+    font-size: 14px;
+  }
+}
+/* Низкое окно — не раздувать числа вертикально */
+@media (max-height: 520px) {
+  .mini-number { min-height: 28px; aspect-ratio: 1.4; font-size: 11px; }
+  .mini-number.zero { min-height: 30px; }
+}
+
+.roulette-side { text-align: center; }
+
 .roulette-container {
-    position: relative;
-    width: 320px;
-    height: 320px;
-    margin: 25px auto;
-    border-radius: 50%;
-    border: 8px solid #ffd700;
-    box-shadow: 
-        0 0 40px rgba(255, 215, 0, 0.4),
-        inset 0 0 20px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-    background: #2f3542;
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 5px solid #ffd700;
+  box-shadow:
+    0 0 24px rgba(255, 215, 0, 0.3),
+    inset 0 0 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  background: #2f3542;
 }
-
-.roulette-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
+.roulette-canvas { width: 100%; height: 100%; display: block; }
 
 .center-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70px;
-    height: 70px;
-    background: #ffd700;
-    border-radius: 50%;
-    z-index: 10;
-    border: 6px solid #ff4757;
-    box-shadow: 
-        0 0 25px rgba(255, 215, 0, 0.8),
-        inset 0 0 15px rgba(255, 71, 87, 0.3);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px; height: 42px;
+  background: #ffd700;
+  border-radius: 50%;
+  z-index: 10;
+  border: 4px solid #ff4757;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
 }
 
 .roulette-pointer {
-    position: absolute;
-    top: 102px;
-    left: -4%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    /* border-top: 25px solid #ff4757; */
-    z-index: 100;
-    filter: drop-shadow(0 0 10px rgba(255, 71, 87, 0.8));
-    transition: all 0.3s;
-    border-top: 50px solid transparent;
-    border-left: 80px solid #ffd700;
-    border-bottom: 50px solid transparent;
-}
-.winning-spin .roulette-pointer {
-    animation: pointerPulse 0.5s ease-in-out infinite;
-    border-top-color: #ffd700;
-}
-.winning-spin  {
-    background: #ff4757;
-    border-color: #ffd700;
-}
-/* Анимация мигания для выигрышного числа */
-@keyframes numberFlash {
-    0%, 100% { 
-        fill: white;
-        font-weight: bold;
-    }
-    50% { 
-        fill: #ffd700;
-        font-weight: 900;
-    }
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 18px solid #ffd700;
+  z-index: 20;
+  filter: drop-shadow(0 0 4px #ffd700);
 }
 
-@keyframes pointerPulse {
-    0% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.1); }
-    100% { transform: translateX(-50%) scale(1); }
-}
-
-.winning-number {
-    animation: numberFlash 0.5s ease-in-out infinite;
-}
-
-/*
-.roulette-pointer::after {
-    content: '';
-    position: absolute;
-    top: -28px;
-    left: -8px;
-    width: 16px;
-    height: 16px;
-    background: #ffd700;
-    border-radius: 50%;
-    border: 3px solid #ff4757;
-    transition: all 0.3s;
-}
-*/
-
-
-
-/* Ставки */
-.bet-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin: 25px 0;
-}
-
-.bet-group {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.bet-group h3 {
-    margin-bottom: 12px;
-    color: #ffd700;
-    font-size: 16px;
-    text-align: center;
-}
-
-.bet-option {
-    width: 100%;
-    padding: 12px;
-    margin: 6px 0;
-    background: #3742fa;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.bet-option:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(55, 66, 250, 0.3);
-}
-
-.bet-option.active {
-    background: #ffd700;
-    color: #1a1a2e;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-}
-
-.red-bet {
-    background: linear-gradient(135deg, #ff3838, #ff6b6b);
-}
-
-.black-bet {
-    background: linear-gradient(135deg, #2d3436, #636e72);
-}
-
-.green-bet {
-    background: linear-gradient(135deg, #00b894, #55efc4);
-}
-
-/* Ставки на числа */
-.number-bets {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.number-bet {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 2px solid white;
-    background: #3742fa;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.number-bet:hover {
-    transform: scale(1.1);
-}
-
-.number-bet.active {
-    background: #ffd700;
-    color: #1a1a2e;
-    border-color: #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-}
-
-.current-number-bet {
-    margin-top: 12px;
-    text-align: center;
-    color: #ffd700;
-    font-size: 15px;
-    font-weight: bold;
-    padding: 8px;
-    background: rgba(255, 215, 0, 0.1);
-    border-radius: 6px;
-}
-
-/* Мини-рулетка для выбора чисел */
-.mini-roulette {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
-    margin: 15px 0;
-    max-height: 140px;
-    overflow-y: auto;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.mini-number {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    color: white;
-    transition: all 0.3s;
-}
-
-.mini-number.red {
-    background: linear-gradient(135deg, #ff3838, #ff6b6b);
-}
-
-.mini-number.black {
-    background: linear-gradient(135deg, #2d3436, #636e72);
-}
-
-.mini-number.green {
-    background: linear-gradient(135deg, #00b894, #55efc4);
-}
-
-.mini-number.active {
-    border: 3px solid #ffd700;
-    transform: scale(1.2);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-    z-index: 1;
-}
-
-/* Слоты */
-.slot-machine {
-    background: #2f3542;
-    border-radius: 15px;
-    padding: 25px;
-    margin: 25px 0;
-    border: 4px solid #ffd700;
-    position: relative;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-}
-
-.reels {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-}
-
-.reel {
-    flex: 1;
-    height: 100px;
-    background: linear-gradient(135deg, #ffffff, #f1f2f6);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    font-weight: bold;
-    color: #1a1a2e;
-    border: 3px solid #ffd700;
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
-}
-
-.slot-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(90deg, transparent, #ff4757, transparent);
-    transform: translateY(-50%);
-    z-index: 1;
-    box-shadow: 0 0 15px rgba(255, 71, 87, 0.8);
-}
-
-.paytable {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 12px;
-    margin: 25px 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.paytable h3 {
-    color: #ffd700;
-    margin-bottom: 15px;
-    text-align: center;
-    font-size: 18px;
-}
-
-.paytable ul {
-    list-style: none;
-    padding: 0;
-}
-
-.paytable li {
-    margin: 8px 0;
-    color: #ddd;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    border-left: 3px solid #ffd700;
-}
-
-/* Общие элементы */
+/* ---- Spin / result ---- */
 .spin-btn {
-    width: 100%;
-    padding: 18px;
-    background: linear-gradient(45deg, #ff6b6b, #ffd700);
-    border: none;
-    border-radius: 12px;
-    color: #1a1a2e;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 25px 0;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  background: linear-gradient(180deg, #ffd700, #e6c200);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #b8960a;
 }
-
-.spin-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
-}
-
-.spin-btn:active {
-    transform: translateY(-1px);
-}
-
-.spin-btn i {
-    font-size: 22px;
+.spin-btn:hover:not(:disabled) { filter: brightness(1.05); }
+.spin-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
 }
 
 .result {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 16px;
-    min-height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 20px 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    line-height: 1.5;
+  min-height: 2.2em;
+  margin: 6px 0;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  color: #ddd;
+}
+.result.win { color: #2ed573; font-weight: bold; }
+.result.loss { color: #ff6b6b; }
+
+/* ---- Slots ---- */
+.slot-machine {
+  position: relative;
+  background: #0f1420;
+  border: 3px solid #ffd700;
+  border-radius: 10px;
+  padding: 16px 12px;
+  margin: 10px 0;
+}
+.reels {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.reel {
+  width: 64px;
+  height: 64px;
+  background: #1a1a2e;
+  border: 2px solid #555;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: inset 0 0 12px #0008;
+}
+.slot-line {
+  position: absolute;
+  left: 8%; right: 8%;
+  top: 50%;
+  height: 2px;
+  background: rgba(255, 71, 87, 0.7);
+  pointer-events: none;
 }
 
+.paytable.compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  justify-content: center;
+  font-size: 11px;
+  color: #aab;
+  margin-bottom: 8px;
+}
+.paytable.compact span { white-space: nowrap; }
+
+/* ---- History ---- */
 .history {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 12px;
-    margin-top: 25px;
-    max-height: 180px;
-    overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-.history h3 {
-    color: #ffd700;
-    margin-bottom: 15px;
-    text-align: center;
-    font-size: 18px;
-}
-
 #gameHistory {
-    font-size: 14px;
-    line-height: 1.4;
+  max-height: 90px;
+  overflow-y: auto;
+  font-size: 11px;
 }
-
 .history-item {
-    padding: 10px;
-    margin: 5px 0;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 6px;
-    border-left: 4px solid transparent;
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-bottom: 3px;
+  background: rgba(0, 0, 0, 0.2);
 }
+.history-item.win { border-left: 3px solid #2ed573; }
+.history-item.loss { border-left: 3px solid #ff6b6b; }
 
-.win {
-    color: #2ed573;
-    border-left-color: #2ed573 !important;
+/* Winning animation helpers */
+.winning-spin .roulette-pointer {
+  animation: pointerPulse 0.45s ease-in-out infinite;
 }
-
-.loss {
-    color: #ff4757;
-    border-left-color: #ff4757 !important;
-}
-
-/* Анимации */
-@keyframes winGlow {
-    0% { 
-        filter: brightness(1) drop-shadow(0 0 5px gold);
-    }
-    50% { 
-        filter: brightness(1.5) drop-shadow(0 0 20px gold);
-    }
-    100% { 
-        filter: brightness(1) drop-shadow(0 0 5px gold);
-    }
-}
-
-.win-glow {
-    animation: winGlow 0.5s ease-in-out infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.spinning {
-    animation: spin 0.1s linear infinite;
-}
-
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
+@keyframes pointerPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px #ffd700); }
+  50% { filter: drop-shadow(0 0 12px #ff4757); }
 }

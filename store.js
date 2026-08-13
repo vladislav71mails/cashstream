@@ -9,6 +9,8 @@ let state = null;
 async function init() {
   try {
     state = await CS.loadState();
+    if (CS.bootI18n) await CS.bootI18n(state);
+    else { if (CS.syncLangFromState) CS.syncLangFromState(state); if (CS.applyI18n) CS.applyI18n(document); }
     render();
 
     CS.onStateChanged((newState) => {
@@ -26,20 +28,20 @@ function render() {
   const grid = document.getElementById('storeGrid');
   grid.innerHTML = '';
 
-  CS.APP_CATALOG.forEach((app) => {
+  // Только реально доступные приложения — «скоро» не показываем
+  CS.APP_CATALOG.filter((app) => app.status !== 'soon').forEach((app) => {
     const installed = CS.isAppInstalled(state, app.id);
-    const isSoon = app.status === 'soon';
 
     const card = document.createElement('div');
-    card.className = 'store-card bevel-out' + (isSoon ? ' soon' : '');
+    card.className = 'store-card bevel-out';
 
     let actionHtml;
-    if (isSoon) {
-      actionHtml = `<span class="store-badge">🔒 Скоро</span>`;
-    } else if (installed) {
-      actionHtml = `<span class="store-badge installed">✅ Установлено</span>`;
+    if (installed) {
+      actionHtml = `<span class="store-badge installed">${CS.t ? CS.t('store.installed') : '✅ Установлено'}</span>`;
     } else {
-      const priceLabel = app.price ? `Установить (${app.price}💰)` : 'Установить бесплатно';
+      const priceLabel = app.price
+        ? (CS.t ? CS.t('store.install_price', { n: app.price }) : `Установить (${app.price}💰)`)
+        : (CS.t ? CS.t('store.install_free') : 'Установить бесплатно');
       actionHtml = `<button class="win95-btn bevel-out install-btn">${priceLabel}</button>`;
     }
 

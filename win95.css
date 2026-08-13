@@ -27,6 +27,16 @@
 
 * { box-sizing: border-box; }
 
+/* Отключаем случайное выделение текста мышкой по всему UI (поля ввода — исключение) */
+html, body, .desktop, .win95-window, .taskbar, .start-menu {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 body {
   font-family: Tahoma, "MS Sans Serif", Geneva, sans-serif;
   color: var(--ink);
@@ -233,4 +243,25 @@ body {
 .debt-badge.bevel-out {
   border-top-color: #c96a6a;
   border-left-color: #c96a6a;
+}
+
+/* ---- Масштаб UI на разных экранах ---- */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  font-size: clamp(12px, 0.85rem + 0.15vw, 14px);
+}
+.win95-window {
+  max-width: 100%;
+}
+.win95-body {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .win95-titlebar { font-size: 11px; padding: 2px 3px 2px 5px; }
+  .win95-btn { font-size: 11px; padding: 3px 6px; }
+  .win95-input { font-size: 12px; }
 }

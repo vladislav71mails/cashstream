@@ -1,58 +1,313 @@
-body { width: 320px; }
+/* ==========================================================================
+   Popup = мини-ПК (Win95 desktop snapshot)
+   ========================================================================== */
 
-#mainWindow { width: 320px; }
+body {
+  width: 300px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--desktop, #008080);
+}
 
-.cash-row {
+#mainWindow {
+  width: 300px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  flex-direction: column;
 }
 
-.level-badge {
-  font-size: 11px;
-  font-weight: bold;
-  padding: 4px 8px;
-}
-
-.gauges { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
-.gauge-row label { font-size: 11px; display: block; margin-bottom: 2px; }
-
-.intern-mini {
-  font-size: 10px;
-  text-align: center;
-  padding: 4px 6px;
-  margin-bottom: 6px;
-  color: var(--ledger-dim);
-}
-
-.debt-mini {
-  font-size: 10px;
-  text-align: center;
-  padding: 4px 6px;
-  margin-bottom: 8px;
-  color: #fff;
-  background: var(--maroon) !important;
-}
-
-.quest-box { padding: 8px; margin-bottom: 8px; }
-.quest-title { font-weight: bold; font-size: 12px; color: var(--ledger-dim); margin-bottom: 2px; }
-.quest-step { font-size: 12px; margin-bottom: 6px; min-height: 30px; }
-
-.work-zone {
+.pop-body {
+  padding: 0 !important;
   position: relative;
-  padding: 14px;
-  margin-bottom: 8px;
+  background: var(--desktop, #008080);
+  min-height: 0;
+}
+
+/* ---- Мини-рабочий стол ---- */
+.mini-desktop {
+  position: relative;
+  background: var(--desktop, #008080);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 10px);
+  padding: 8px 6px 4px;
+  min-height: 210px;
+}
+
+.mini-icons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 2px;
+  margin-bottom: 6px;
+}
+
+.mini-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: Tahoma, "MS Sans Serif", sans-serif;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.mini-icon:hover,
+.mini-icon.selected {
+  background: rgba(0, 0, 128, 0.45);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.mini-icon:active {
+  background: rgba(0, 0, 128, 0.65);
+}
+.mini-icon .glyph {
+  font-size: 20px;
+  line-height: 1.1;
+  filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.5));
+}
+.mini-icon .label {
+  font-size: 9px;
+  text-align: center;
+  line-height: 1.15;
+  max-width: 64px;
   overflow: hidden;
-  min-height: 90px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.tap-btn { font-size: 13px; font-weight: bold; }
-.hint { font-size: 10px; color: var(--shadow); text-align: center; }
+/* ---- HUD статуса ---- */
+.mini-hud {
+  margin: 0 2px 2px;
+  padding: 4px 6px;
+  background: var(--face, #c0c0c0) !important;
+  color: var(--ink, #1a1a1a);
+  text-shadow: none;
+}
+.hud-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.hud-cash {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--ledger-dim, #0a5c31);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hud-level {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+.hud-bars {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.hud-bar {
+  width: 36px;
+  height: 8px;
+  background: #fff;
+  border: 1px solid var(--shadow, #808080);
+  position: relative;
+  overflow: hidden;
+}
+.hud-bar i {
+  display: block;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.hud-bar.focus i { background: #3a7bd5; }
+.hud-bar.burnout i { background: var(--maroon, #7a1c1c); }
 
-.actions { display: flex; flex-direction: column; gap: 6px; }
-.actions .win95-btn { font-size: 11px; }
+.hud-order {
+  font-size: 10px;
+  color: #333;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-alerts {
+  font-size: 10px;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+.hud-alerts:empty { display: none; }
+.hud-alert-debt {
+  color: #fff;
+  background: var(--maroon, #7a1c1c);
+  padding: 1px 4px;
+  display: inline-block;
+}
+.hud-alert-grace {
+  color: #0a3a20;
+  background: #c8f0d8;
+  padding: 1px 4px;
+  display: inline-block;
+}
+
+/* ---- Диалог сетевого входа ---- */
+.net-dialog {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 28px;
+  z-index: 20;
+  background: var(--face, #c0c0c0) !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+}
+.net-dialog-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, var(--title-a, #000080), var(--title-b, #1084d0));
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 4px 3px 6px;
+}
+.net-close {
+  font-size: 11px !important;
+  padding: 0 5px !important;
+  line-height: 1.2;
+  min-width: 0;
+}
+.net-dialog-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.net-dialog-hint {
+  font-size: 10px;
+  color: #333;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.net-label {
+  font-size: 10px;
+  color: #222;
+}
+.net-dialog-body .win95-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: 11px Tahoma, sans-serif;
+  padding: 3px 5px;
+  border: 2px inset #fff;
+  margin-bottom: 2px;
+}
+.net-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.net-dialog-actions .win95-btn {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+.net-dialog-msg {
+  font-size: 10px;
+  min-height: 14px;
+  margin-top: 2px;
+}
+
+/* ---- Taskbar ---- */
+.pop-taskbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px !important;
+  min-height: 28px;
+}
+.start-btn {
+  font-size: 10px !important;
+  font-weight: bold;
+  padding: 2px 8px !important;
+}
+.taskbar-fill { flex: 1; min-width: 4px; }
+.tray-btn {
+  font-size: 11px;
+  padding: 1px 5px !important;
+  line-height: 1.2;
+  cursor: pointer;
+  background: var(--face, #c0c0c0);
+  border: none;
+}
+.tray-btn.cloud-tray {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px !important;
+  color: #000080;
+}
+.tray-btn.cloud-tray .cloud-tray-label {
+  font-size: 10px;
+  font-weight: bold;
+}
+.tray-btn.cloud-tray.logged {
+  color: var(--ledger-dim, #0a5c31);
+  background: #d8f0e0;
+}
+.tray-btn.logged {
+  color: var(--ledger-dim, #0a5c31);
+}
+.tray-status {
+  font-size: 11px;
+  padding: 0 2px;
+}
+.tray-clock {
+  font-size: 11px;
+  font-family: Tahoma, sans-serif;
+  padding: 1px 4px;
+  min-width: 36px;
+  text-align: right;
+}
+
+.taskbar-sep {
+  width: 2px;
+  align-self: stretch;
+  background: var(--shadow, #808080);
+  border-right: 1px solid var(--hi, #fff);
+  margin: 1px 2px;
+}
+
+.tray-btn.lang-tray {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px !important;
+  color: #000080;
+}
+.lang-tray-label { font-size: 10px; font-weight: bold; }
+.lang-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lang-choices .lang-choice {
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.lang-choices .lang-choice.active {
+  background: #000080 !important;
+  color: #fff !important;
+}

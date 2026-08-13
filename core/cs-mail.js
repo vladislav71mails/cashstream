@@ -37,7 +37,9 @@ CS.addMail = function (state, opts) {
     read: !!opts.read,
     starred: !!opts.starred,
     time: opts.time || new Date().toISOString(),
-    tags: opts.tags || []
+    tags: opts.tags || [],
+    // Сделка с заказчиком биржи: orderUid + кнопки быстрого ответа
+    deal: opts.deal || null
   };
 
   // Простые фильтры: по from/subject → папка
@@ -199,8 +201,8 @@ CS.maybeGenerateSystemMail = function (state) {
   } else if (roll < 0.15 && state.level >= 2) {
     CS.addMail(state, {
       from: 'arenda@office.cash',
-      subject: 'Напоминание об аренде офиса',
-      body: `Аренда списывается автоматически каждые ${CS.CONFIG.RENT_INTERVAL_TICKS} сек.\nТекущий уровень: ${state.level}.\nДержите запас кэша, чтобы не уходить в долг.\n\n— Управляющая компания`,
+      subject: CS.t ? CS.t('mail.rent_rem.subj') : 'Rent',
+      body: CS.t ? CS.t('mail.rent_rem.body', { ticks: CS.CONFIG.RENT_INTERVAL_TICKS, level: state.level }) : '',
       folder: 'inbox',
       tags: ['rent']
     });
@@ -213,40 +215,48 @@ CS.notifyMail = function (state, kind, extra) {
   if (kind === 'hire') {
     CS.addMail(state, {
       from: 'hr@kadry.cash',
-      subject: `Трудоустройство: стажёр №${state.interns}`,
-      body: `Оформлен новый стажёр.\nВсего в штате: ${state.interns}.\nДоход от стажёров: ~${(state.interns * CS.CONFIG.INTERN_INCOME_PER_TICK).toFixed(1)}💰/с.\n\n${extra || ''}`,
+      subject: CS.t ? CS.t('mail.hire.subj', { n: state.interns }) : ('Intern #' + state.interns),
+      body: CS.t ? CS.t('mail.hire.body', { n: state.interns, income: (state.interns * CS.CONFIG.INTERN_INCOME_PER_TICK).toFixed(1), extra: extra || '' }) : (extra || ''),
+      folder: 'inbox',
+      tags: ['hr']
+    });
+  } else if (kind === 'hire_pm') {
+    CS.addMail(state, {
+      from: 'hr@kadry.cash',
+      subject: CS.t ? CS.t('mail.hire_pm.subj', { n: state.projectManagers }) : ('PM #' + state.projectManagers),
+      body: CS.t ? CS.t('mail.hire_pm.body', { n: state.projectManagers, extra: extra || '' }) : (extra || ''),
       folder: 'inbox',
       tags: ['hr']
     });
   } else if (kind === 'equip') {
     CS.addMail(state, {
       from: 'shop@office.market',
-      subject: `Заказ доставлен: оборудование ур. ${state.equipLevel}`,
-      body: `Ваш заказ на улучшение рабочего места выполнен.\nБонус к клику: +${(state.equipLevel * CS.CONFIG.EQUIP_CLICK_BONUS).toFixed(1)}.\n\nСпасибо за покупку в Офис.Маркет!`,
+      subject: CS.t ? CS.t('mail.equip.subj', { n: state.equipLevel }) : ('Equip ' + state.equipLevel),
+      body: CS.t ? CS.t('mail.equip.body', { bonus: (state.equipLevel * CS.CONFIG.EQUIP_CLICK_BONUS).toFixed(1) }) : '',
       folder: 'inbox',
       tags: ['shop']
     });
   } else if (kind === 'coffee') {
     CS.addMail(state, {
       from: 'shop@office.market',
-      subject: `Кофемашина установлена (ур. ${state.coffeeLevel})`,
-      body: `Кофемашина помогает экономить фокус при кликах.\nУровень: ${state.coffeeLevel}.\nПриятной работы!`,
+      subject: CS.t ? CS.t('mail.coffee.subj', { n: state.coffeeLevel }) : ('Coffee ' + state.coffeeLevel),
+      body: CS.t ? CS.t('mail.coffee.body', { n: state.coffeeLevel }) : '',
       folder: 'inbox',
       tags: ['shop']
     });
   } else if (kind === 'tax_fine') {
     CS.addMail(state, {
       from: 'fns@nalog.cash',
-      subject: '🚨 Штраф по результатам проверки',
-      body: extra || 'Вам начислен штраф за незарегистрированную деятельность. Рекомендуем легализовать бизнес.',
+      subject: CS.t ? CS.t('mail.tax.subj') : 'Tax fine',
+      body: extra || (CS.t ? CS.t('mail.tax.body') : ''),
       folder: 'inbox',
       tags: ['tax']
     });
   } else if (kind === 'welcome') {
     CS.addMail(state, {
       from: 'support@cash.stream',
-      subject: 'Добро пожаловать в КЭШ.СТРИМ',
-      body: 'Это ваш почтовый ящик.\nСюда будут приходить уведомления о налогах, найме, аренде и акциях.\n\nПапка «Спам» уже работает — настройте фильтры при необходимости.\n\nУдачной смены!',
+      subject: CS.t ? CS.t('mail.welcome.subj') : 'Welcome',
+      body: CS.t ? CS.t('mail.welcome.body') : '',
       folder: 'inbox',
       tags: ['system']
     });

@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "КЭШ.СТРИМ",
   "short_name": "КЭШ.СТРИМ",
-  "version": "0.2.0",
-  "description": "Кликер-симулятор фрилансера: квесты, казино и офис 90-х.",
+  "version": "0.2.3",
+  "description": "Симулятор фрилансера: биржа заказов, штат, инвестиции и офис 90-х.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -17,7 +17,11 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "identity"],
+  "host_permissions": [
+    "https://agrsvzssbyhutovflxgv.supabase.co/*",
+    "https://accounts.google.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   }

@@ -9,19 +9,23 @@ let selectedLoanTerm = 3;
 // Конфигурация банковских продуктов
 const BANK_CONFIG = {
   depositRates: [
-    { months: 1, rate: 0.02, label: '1 месяц' },
-    { months: 3, rate: 0.07, label: '3 месяца' },
-    { months: 6, rate: 0.15, label: '6 месяцев' },
-    { months: 12, rate: 0.32, label: '12 месяцев' }
+    { months: 1, rate: 0.02, label: (CS.t ? CS.t('m.2d54fa570e') : '1 месяц') },
+    { months: 3, rate: 0.07, label: (CS.t ? CS.t('m.7a853f97c3') : '3 месяца') },
+    { months: 6, rate: 0.15, label: (CS.t ? CS.t('m.e3a04f479d') : '6 месяцев') },
+    { months: 12, rate: 0.32, label: (CS.t ? CS.t('m.d3ac2737d3') : '12 месяцев') }
   ],
   loanRates: [
-    { months: 1, rate: 0.15, label: '1 месяц' },
-    { months: 3, rate: 0.40, label: '3 месяца' },
-    { months: 6, rate: 0.75, label: '6 месяцев' },
-    { months: 12, rate: 1.50, label: '12 месяцев' }
+    { months: 1, rate: 0.15, label: (CS.t ? CS.t('m.2d54fa570e') : '1 месяц') },
+    { months: 3, rate: 0.40, label: (CS.t ? CS.t('m.7a853f97c3') : '3 месяца') },
+    { months: 6, rate: 0.75, label: (CS.t ? CS.t('m.e3a04f479d') : '6 месяцев') },
+    { months: 12, rate: 1.50, label: (CS.t ? CS.t('m.d3ac2737d3') : '12 месяцев') }
   ],
   mortgageTerms: [3, 5, 10, 15, 20],
   minDownPayment: 0.20,
+  /** Наценка к цене объекта при покупке в ипотеку (иначе это просто рассрочка). */
+  mortgagePriceMarkup: 1.28,
+  /** Базовая ставка ипотеки до бонуса/штрафа рейтинга. */
+  mortgageBaseRate: 0.12,
   creditScoreThresholds: [
     { min: 0, label: 'F', interestBonus: 0.50, maxLoan: 500, emoji: '🔴' },
     { min: 25, label: 'E', interestBonus: 0.40, maxLoan: 1000, emoji: '🟠' },
@@ -36,6 +40,8 @@ const BANK_CONFIG = {
 async function init() {
   try {
     state = await CS.loadState();
+    if (CS.bootI18n) await CS.bootI18n(state);
+    else { if (CS.syncLangFromState) CS.syncLangFromState(state); if (CS.applyI18n) CS.applyI18n(document); }
     if (!state.bank) {
       state.bank = {
         deposits: [],
@@ -187,7 +193,7 @@ function renderDeposits() {
   list.innerHTML = '';
   
   if (state.bank.deposits.length === 0) {
-    list.innerHTML = '<div class="bank-hint bevel-in" style="margin:0;">Нет активных депозитов</div>';
+    list.innerHTML = '<div class="bank-hint bevel-in" style="margin:0;">' + (CS.t ? CS.t('bank.empty_deposits') : '') + '</div>';
   } else {
     state.bank.deposits.forEach((deposit, idx) => {
       const card = document.createElement('div');
@@ -200,13 +206,13 @@ function renderDeposits() {
         <div class="deposit-info">
           <div class="deposit-amount">${Math.round(deposit.amount)}💰</div>
           <div class="deposit-rate">${deposit.rate * 100}% за ${deposit.months} мес. · 
-            ${isMature ? '✅ Срок истёк' : `${monthsPassed}/${deposit.months} мес. прошло`}
+            ${isMature ? (CS.t ? CS.t('m.e8b07210bf') : '') : (CS.t ? CS.t('bank.mo_passed', { a: monthsPassed, b: deposit.months }) : (monthsPassed + '/' + deposit.months))}
             ${isMature ? ` (💰 ${Math.round(totalReturn)}💰)` : ''}
           </div>
         </div>
         <div class="deposit-actions">
           <button class="win95-btn bevel-out bank-btn-sm deposit-close-btn" data-idx="${idx}">
-            ${isMature ? '💰 Забрать с процентами' : '⏳ Забрать досрочно (без %)'}
+            ${isMature ? (CS.t ? CS.t('m.ee2ec08e7b') : '') : (CS.t ? CS.t('m.9aa8ecafaa') : '')}
           </button>
         </div>
       `;
@@ -317,7 +323,7 @@ function renderLoans() {
   const maxLoan = rating.maxLoan;
   
   if (activeLoans.length === 0) {
-    list.innerHTML = '<div class="bank-hint bevel-in" style="margin:0;">Нет активных кредитов</div>';
+    list.innerHTML = '<div class="bank-hint bevel-in" style="margin:0;">' + (CS.t ? CS.t('bank.empty_loans') : '') + '</div>';
   } else {
     activeLoans.forEach((loan, idx) => {
       const realIdx = state.bank.loans.indexOf(loan);
@@ -333,10 +339,10 @@ function renderLoans() {
         <div class="loan-info">
           <div class="loan-amount">${Math.round(loan.amount)}💰</div>
           <div class="loan-rate">${loan.rate * 100}% за ${loan.months} мес. · 
-            ${isOverdue ? '⚠️ ПРОСРОЧКА!' : `${Math.min(monthsPassed, loan.months)}/${loan.months} мес. прошло`}
+            ${isOverdue ? (CS.t ? CS.t('m.05249b1151') : '') : (CS.t ? CS.t('bank.mo_passed', { a: Math.min(monthsPassed, loan.months), b: loan.months }) : '')}
           </div>
           <div class="loan-payment">Остаток: ${Math.round(remaining)}💰 · 
-            Ежемесячно: ${Math.round(loan.amount / loan.months)}💰
+            ${CS.t ? CS.t('bank.monthly', { n: Math.round(loan.amount / loan.months) }) : Math.round(loan.amount / loan.months)}
           </div>
         </div>
         <div>
@@ -363,7 +369,7 @@ function updateLoanHint() {
   const rating = getCreditRating(getCreditScore(state));
   const maxLoan = rating.maxLoan;
   const hint = document.getElementById('loanMaxHint');
-  hint.textContent = `Макс: ${maxLoan}💰 (рейтинг ${rating.label})`;
+  hint.textContent = CS.t ? CS.t('bank.max_loan', { n: maxLoan, r: rating.label }) : String(maxLoan);
 }
 
 function takeLoan(amount, months) {
@@ -433,17 +439,21 @@ function renderMortgages() {
   
   CS.PROPERTIES.forEach((prop) => {
     const owned = state.properties[prop.id] || 0;
-    const price = CS.propertyCost(state, prop.id);
-    const downPayment = Math.round(price * BANK_CONFIG.minDownPayment);
+    const cashPrice = CS.propertyCost(state, prop.id);
+    const markup = BANK_CONFIG.mortgagePriceMarkup || 1.28;
+    const mortgagePrice = Math.round(cashPrice * markup);
+    const downPayment = Math.round(mortgagePrice * BANK_CONFIG.minDownPayment);
     const canAfford = state.cash >= downPayment;
     const hasMortgage = state.bank.mortgages.some(m => m.propertyId === prop.id);
-    
+    const extraPct = Math.round((markup - 1) * 100);
+
     const card = document.createElement('div');
     card.className = 'mortgage-card bevel-out';
     card.innerHTML = `
       <div class="mortgage-info">
         <div class="mortgage-property">${prop.icon} ${prop.name}</div>
-        <div>Цена: ${price}💰 · Первый взнос: ${downPayment}💰 (20%)</div>
+        <div>За кэш: ${cashPrice}💰 · В ипотеку: ${mortgagePrice}💰 (+${extraPct}%)</div>
+        <div>Первый взнос: ${downPayment}💰 (20%) · + проценты по ставке</div>
         <div class="mortgage-payment">Доход: +${prop.income}💰/с · Содержание: -${prop.upkeep}💰/с</div>
         ${owned > 0 ? `<div style="color:#2a7a3a;">✅ Уже в собственности: ${owned} шт.</div>` : ''}
         ${hasMortgage ? `<div style="color:#8a6a2a;">🏠 В ипотеке</div>` : ''}
@@ -452,7 +462,7 @@ function renderMortgages() {
         ${!hasMortgage && owned === 0 ? `
           <button class="win95-btn bevel-out bank-btn-sm mortgage-btn" 
                   ${canAfford ? '' : 'disabled'}>
-            🏡 Ипотека на ${price}💰
+            ${CS.t ? CS.t('bank.mortgage_from', { n: downPayment }) : downPayment}
           </button>
         ` : ''}
         ${hasMortgage ? `
@@ -475,7 +485,7 @@ function renderMortgages() {
     const header = document.createElement('div');
     header.className = 'bank-hint bevel-in';
     header.style.marginTop = '8px';
-    header.textContent = '🏠 Активные ипотеки:';
+    header.textContent = (CS.t ? CS.t('m.c8272c38d4') : '🏠 Активные ипотеки:');
     list.appendChild(header);
     
     state.bank.mortgages.forEach((m, idx) => {
@@ -492,8 +502,8 @@ function renderMortgages() {
         <div class="mortgage-info">
           <div class="mortgage-property">${prop.icon} ${prop.name}</div>
           <div class="mortgage-balance">Остаток: ${Math.round(remaining)}💰</div>
-          <div class="mortgage-payment">Ежемесячно: ${Math.round(m.monthlyPayment)}💰 · 
-            ${isOverdue ? '⚠️ ПРОСРОЧКА!' : `${Math.min(monthsPassed, m.months)}/${m.months} мес.`}
+          <div class="mortgage-payment">${CS.t ? CS.t('bank.monthly', { n: Math.round(m.monthlyPayment) }) : m.monthlyPayment} · 
+            ${isOverdue ? (CS.t ? CS.t('m.05249b1151') : '') : (CS.t ? CS.t('bank.mo_passed', { a: Math.min(monthsPassed, m.months), b: m.months }) : '')}
           </div>
         </div>
         <div>
@@ -512,42 +522,53 @@ function renderMortgages() {
 function takeMortgage(propertyId) {
   const prop = CS.PROPERTIES.find(p => p.id === propertyId);
   if (!prop) return;
-  
-  const price = CS.propertyCost(state, propertyId);
+
+  const cashPrice = CS.propertyCost(state, propertyId);
+  const markup = BANK_CONFIG.mortgagePriceMarkup || 1.28;
+  const price = Math.round(cashPrice * markup); // цена в ипотеку выше наличной
   const downPayment = Math.round(price * BANK_CONFIG.minDownPayment);
-  
+
   if (state.cash < downPayment) {
-    alert(`Не хватает на первый взнос! Нужно ${downPayment}💰`);
+    alert(`Не хватает на первый взнос! Нужно ${downPayment}💰 (в ипотеку объект дороже: ${price}💰 вместо ${cashPrice}💰 за кэш)`);
     return;
   }
-  
-  const term = prompt('Выберите срок ипотеки (месяцев):\n3, 5, 10, 15, 20', '10');
+
+  const term = prompt(CS.t ? CS.t('bank.mortgage_term') : '3,5,10,15,20', '10');
   const months = parseInt(term);
   if (!BANK_CONFIG.mortgageTerms.includes(months)) {
-    alert('Выберите срок: 3, 5, 10, 15 или 20 месяцев');
+    alert(CS.t ? CS.t('bank.mortgage_term_bad') : '3/5/10/15/20');
     return;
   }
-  
+
   const rating = getCreditRating(getCreditScore(state));
-  const rate = Math.max(0.03, 0.08 + rating.interestBonus);
+  const baseRate = BANK_CONFIG.mortgageBaseRate != null ? BANK_CONFIG.mortgageBaseRate : 0.12;
+  const rate = Math.max(0.04, baseRate + rating.interestBonus);
   const loanAmount = price - downPayment;
   const totalWithInterest = loanAmount * (1 + rate);
   const monthlyPayment = totalWithInterest / months;
-  
+  const totalCost = downPayment + totalWithInterest;
+
   state.cash -= downPayment;
   state.properties[propertyId] = (state.properties[propertyId] || 0) + 1;
-  
+
   state.bank.mortgages.push({
     propertyId: propertyId,
+    cashPrice: cashPrice,
+    mortgagePrice: price,
     totalAmount: totalWithInterest,
     paidAmount: 0,
     months: months,
     monthlyPayment: monthlyPayment,
+    rate: rate,
     startTime: Date.now(),
     downPayment: downPayment
   });
-  
-  addBankHistory(state, `Оформлена ипотека на ${prop.name} (${months} мес., ${Math.round(rate*100)}%)`, 'bank-mortgage');
+
+  addBankHistory(
+    state,
+    `Оформлена ипотека на ${prop.name}: цена ${price}💰 (кэш ${cashPrice}), взнос ${downPayment}, всего к выплате ~${Math.round(totalCost)}💰 (${months} мес., ${Math.round(rate * 100)}%)`,
+    'bank-mortgage'
+  );
   CS.saveState(state);
 }
 
@@ -577,7 +598,7 @@ function renderHistory() {
   
   const history = state.bank.history || [];
   if (history.length === 0) {
-    log.innerHTML = '<div style="color: #888;">Нет операций</div>';
+    log.innerHTML = '<div style="color: #888;">' + (CS.t ? CS.t('bank.empty_history') : '') + '</div>';
     return;
   }
   

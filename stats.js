@@ -1,5 +1,5 @@
 // ============================================================================
-// Отчетность.exe — симулятор 1С:Предприятие (бюрократия, регистрация,
+// Отчетность.exe — кабинет учёта (регистрация,
 // отчётность, налоги, игровая статистика). ЭЦП/СКЗИ и Магазин приложений
 // вынесены в отдельные программы (crypto.html / store.html) — эта программа
 // отвечает только за учёт и отчётность.
@@ -13,9 +13,12 @@ const COSTS = {
   update: 80,
   patch: 40,
   directories: 30,
-  license: 450,       // лицензия 1С
-  its: 320,           // 1С:ИТС
-  reporting: 280,     // 1С:Отчётность
+  license: 450,
+  its: 320,           // подписка на обновления (~400 тиков)
+  reporting: 280,     // модуль сдачи (~350 тиков)
+  itsDays: 400,
+  reportingDays: 350,
+  dirsDays: 300,
   regSelf: 50,
   regIp: 200,
   regOoo: 500,
@@ -49,7 +52,7 @@ function genOgrn(type) {
   return prefix + String(Math.floor(1e12 + Math.random() * 9e12)).slice(0, 12);
 }
 
-// ---- Заставка при запуске (визуальная имитация загрузки 1С) ----
+// ---- Заставка при запуске ----
 async function runBootSequence() {
   const boot = document.getElementById('onecBoot');
   const logEl = document.getElementById('onecBootLog');
@@ -57,11 +60,11 @@ async function runBootSequence() {
   if (!boot) return;
 
   const lines = [
-    'Инициализация конфигурации «КЭШ.СТРИМ: Учёт и отчётность»…',
-    'Подключение к информационной базе…',
-    'Проверка лицензии платформы…',
-    'Загрузка форм и справочников…',
-    'Готово.'
+    (CS.t ? CS.t('m.e88a456c6b') : 'Запуск кабинета учёта…'),
+    (CS.t ? CS.t('m.e3116a7b60') : 'Подключение книги доходов и расходов…'),
+    (CS.t ? CS.t('m.e3e0a82e53') : 'Проверка подписок и ЭЦП…'),
+    (CS.t ? CS.t('m.a046c11f13') : 'Загрузка справочников ФНС…'),
+    (CS.t ? CS.t('m.487d88cbb5') : 'Готово.')
   ];
 
   for (let i = 0; i < lines.length; i++) {
@@ -78,7 +81,7 @@ async function runBootSequence() {
 }
 
 // ---- Готовность к сдаче ----
-function isReadyToSubmit(onec) {
+function isWorkplaceReady(onec) {
   return (
     onec.installed &&
     onec.updated &&
@@ -95,20 +98,29 @@ function isReadyToSubmit(onec) {
   );
 }
 
+function isReadyToSubmit(onec) {
+  const p = onec.period || {};
+  return isWorkplaceReady(onec) && p.diagnosed && p.declared && p.taxPaid && !p.submitted;
+}
+
 function readinessList(onec) {
+  const p = onec.period || {};
   return [
-    { ok: onec.installed, label: '1С установлена' },
-    { ok: onec.updated, label: `Обновление до ${onec.targetVersion}` },
+    { ok: onec.installed, label: (CS.t ? CS.t('stats.cab_ok') : '') },
+    { ok: onec.updated, label: `ПО актуально (v${onec.version} → ${onec.targetVersion})` },
     { ok: onec.patchesInstalled >= onec.patchesNeeded, label: `Патчи (${onec.patchesInstalled}/${onec.patchesNeeded})` },
-    { ok: onec.directoriesLoaded, label: 'Справочники загружены' },
-    { ok: onec.licensePaid, label: 'Лицензия 1С' },
-    { ok: onec.itsPaid, label: '1С:ИТС' },
-    { ok: onec.reportingPaid, label: '1С:Отчётность' },
-    { ok: onec.tokenBought, label: 'Токен (USB-ключ) — программа «ЭЦП и СКЗИ.exe»' },
-    { ok: onec.cryptoproInstalled, label: 'КриптоПро CSP — программа «Магазин приложений.exe»' },
-    { ok: onec.edsDrivers, label: 'Драйверы ЭЦП — программа «ЭЦП и СКЗИ.exe»' },
-    { ok: onec.skziLicense, label: 'Лицензия СКЗИ — программа «ЭЦП и СКЗИ.exe»' },
-    { ok: onec.registration.registered, label: 'Регистрация (ИП/ООО/самозанятый)' }
+    { ok: onec.directoriesLoaded, label: (CS.t ? CS.t('stats.dirs_short') : '') },
+    { ok: onec.licensePaid, label: (CS.t ? CS.t('stats.lic_cabinet') : 'Лицензия кабинета') },
+    { ok: onec.itsPaid, label: (CS.t ? CS.t('m.ab6aa9a23a') : 'Подписка на обновления (не просрочена)') },
+    { ok: onec.reportingPaid, label: (CS.t ? CS.t('m.3989fffd0c') : 'Модуль сдачи отчётности (не просрочен)') },
+    { ok: onec.tokenBought, label: (CS.t ? CS.t('m.e3922c7278') : 'Токен ЭЦП — «ЭЦП и СКЗИ.exe»') },
+    { ok: onec.cryptoproInstalled, label: (CS.t ? CS.t('m.38e11f0235') : 'Криптопровайдер — «Магазин.exe»') },
+    { ok: onec.edsDrivers && onec.skziLicense, label: (CS.t ? CS.t('m.a662ce4c60') : 'Драйверы и лицензия СКЗИ') },
+    { ok: onec.registration.registered, label: (CS.t ? CS.t('m.0714f6263a') : 'Регистрация бизнеса') },
+    { ok: !!p.diagnosed, label: (CS.t ? CS.t('m.a9f9dd524d') : '① Диагностика периода пройдена') },
+    { ok: !!p.declared, label: (CS.t ? CS.t('m.df06f55fb1') : '② Декларация сформирована') },
+    { ok: !!p.taxPaid, label: (CS.t ? CS.t('m.01a9370abf') : '③ Налог за период уплачен') },
+    { ok: !!p.submitted, label: (CS.t ? CS.t('m.b2cba83fdd') : '④ Отчёт отправлен (закрыт)') }
   ];
 }
 
@@ -126,12 +138,12 @@ function renderAll() {
 function updateStatusBadge(onec) {
   const badge = document.getElementById('onecStatusBadge');
   const ver = document.getElementById('onecVersion');
-  ver.textContent = onec.installed ? onec.version : 'не установлена';
+  ver.textContent = onec.installed ? onec.version : (CS.t ? CS.t('stats.onec_none') : '—');
   if (isReadyToSubmit(onec)) {
-    badge.textContent = 'ГОТОВО К ОТЧЁТНОСТИ';
+    badge.textContent = CS.t ? CS.t('stats.ready') : 'READY';
     badge.classList.add('ready');
   } else {
-    badge.textContent = 'НЕ ГОТОВО';
+    badge.textContent = CS.t ? CS.t('stats.not_ready') : 'NO';
     badge.classList.remove('ready');
   }
 }
@@ -139,10 +151,10 @@ function updateStatusBadge(onec) {
 function renderSetup(onec) {
   const list = document.getElementById('setupChecklist');
   const items = [
-    { ok: onec.installed, label: 'Платформа 1С:Предприятие установлена' },
-    { ok: onec.updated, label: `Релиз актуален (${onec.version} → ${onec.targetVersion})` },
+    { ok: onec.installed, label: (CS.t ? CS.t('m.f94e6a13ee') : 'Кабинет учёта развёрнут') },
+    { ok: onec.updated, label: `ПО актуально (${onec.version} → ${onec.targetVersion})` },
     { ok: onec.patchesInstalled >= onec.patchesNeeded, label: `Патчи безопасности (${onec.patchesInstalled}/${onec.patchesNeeded})` },
-    { ok: onec.directoriesLoaded, label: 'Справочники (ОКВЭД, КБК, регионы) загружены' }
+    { ok: onec.directoriesLoaded, label: (CS.t ? CS.t('m.aef1278874') : 'Справочники ФНС (КБК, ОК, регионы) актуальны') }
   ];
   list.innerHTML = items.map(i => `
     <div class="check-item ${i.ok ? 'done' : ''}">
@@ -154,7 +166,8 @@ function renderSetup(onec) {
   document.getElementById('btnInstall').disabled = onec.installed;
   document.getElementById('btnUpdate').disabled = !onec.installed || onec.updated;
   document.getElementById('btnPatch').disabled = !onec.updated || onec.patchesInstalled >= onec.patchesNeeded;
-  document.getElementById('btnDirs').disabled = !onec.updated || onec.directoriesLoaded;
+  // справочники можно обновлять снова, когда истекли
+  document.getElementById('btnDirs').disabled = !onec.updated;
 
   const bootRelease = document.getElementById('onecBootRelease');
   if (bootRelease) bootRelease.textContent = onec.version;
@@ -162,18 +175,21 @@ function renderSetup(onec) {
 
 function renderLicenses(onec) {
   const grid = document.getElementById('licenseGrid');
+  const tick = (state && state._acctTick) || 0;
+  const itsLeft = onec.itsPaid ? Math.max(0, (onec.itsUntilTick || 0) - tick) : 0;
+  const repLeft = onec.reportingPaid ? Math.max(0, (onec.reportingUntilTick || 0) - tick) : 0;
   const licenses = [
-    { key: 'licensePaid', name: 'Лицензия 1С:Предприятие', desc: 'Основная лицензия на платформу. Без неё конфигурация не запустится в рабочем режиме.', price: COSTS.license },
-    { key: 'itsPaid', name: '1С:ИТС (информационно-технологическое сопровождение)', desc: 'Обновления, консультации, доступ к базе знаний. Требуется для патчей.', price: COSTS.its },
-    { key: 'reportingPaid', name: '1С:Отчётность', desc: 'Модуль электронной сдачи деклараций в ФНС, ПФР, ФСС.', price: COSTS.reporting }
+    { key: 'licensePaid', name: CS.t ? CS.t('stats.lic_cabinet') : 'License', desc: CS.t ? CS.t('stats.lic_cabinet_d') : '', price: COSTS.license, status: onec.licensePaid ? (CS.t ? CS.t('stats.lic_forever') : 'OK') : null },
+    { key: 'itsPaid', name: CS.t ? CS.t('stats.lic_its') : 'Updates', desc: CS.t ? CS.t('stats.lic_its_d') : '', price: COSTS.its, status: onec.itsPaid ? (CS.t ? CS.t('stats.lic_left', { n: itsLeft }) : String(itsLeft)) : null },
+    { key: 'reportingPaid', name: CS.t ? CS.t('stats.lic_rep') : 'Tax module', desc: CS.t ? CS.t('stats.lic_rep_d') : '', price: COSTS.reporting, status: onec.reportingPaid ? (CS.t ? CS.t('stats.lic_left', { n: repLeft }) : String(repLeft)) : null }
   ];
   grid.innerHTML = licenses.map(l => `
     <div class="license-card ${onec[l.key] ? 'paid' : ''}">
       <div class="license-name">${l.name}</div>
       <div class="license-desc">${l.desc}</div>
-      <div class="license-price">${onec[l.key] ? '✅ Оплачено' : l.price + '💰'}</div>
-      <button class="win95-btn bevel-out" data-license="${l.key}" data-price="${l.price}" ${onec[l.key] ? 'disabled' : ''}>
-        ${onec[l.key] ? 'Активна' : 'Купить'}
+      <div class="license-price">${l.status || (l.price + '💰')}</div>
+      <button class="win95-btn bevel-out" data-license="${l.key}" data-price="${l.price}" ${onec[l.key] && l.key === 'licensePaid' ? 'disabled' : ''}>
+        ${onec[l.key] && l.key === 'licensePaid' ? (CS.t ? CS.t('stats.lic_active') : 'Active') : (onec[l.key] ? (CS.t ? CS.t('stats.renew') : 'Renew') : (CS.t ? CS.t('stats.pay') : 'Pay'))}
       </button>
     </div>
   `).join('');
@@ -188,7 +204,7 @@ function renderReg(onec) {
   const status = document.getElementById('regStatus');
   const formBox = document.getElementById('regForm');
   const typesBox = document.querySelector('.reg-types');
-  const typeLabel = { self: 'Самозанятый', ip: 'ИП', ooo: 'ООО' };
+  const typeLabel = { self: CS.t ? CS.t('stats.type_self') : 'self', ip: CS.t ? CS.t('stats.type_ip') : 'ip', ooo: CS.t ? CS.t('stats.type_ooo') : 'ooo' };
 
   if (r.registered) {
     typesBox.style.display = 'none';
@@ -197,27 +213,35 @@ function renderReg(onec) {
 
     let upgradeHtml = '';
     if (r.type === 'self') {
-      upgradeHtml = `<button class="win95-btn bevel-out" id="btnUpgradeIp">⬆️ Перейти на ИП — ${COSTS.regIp}💰</button>`;
+      upgradeHtml = `<button class="win95-btn bevel-out" id="btnUpgradeIp">${CS.t ? CS.t('stats.upgrade_ip', { n: COSTS.regIp }) : COSTS.regIp}</button>`;
     } else if (r.type === 'ip') {
-      upgradeHtml = `<button class="win95-btn bevel-out" id="btnUpgradeOoo">⬆️ Перейти на ООО — ${COSTS.regOoo + COSTS.regOooCapital}💰</button>`;
+      upgradeHtml = `<button class="win95-btn bevel-out" id="btnUpgradeOoo">${CS.t ? CS.t('stats.upgrade_ooo', { n: COSTS.regOoo + COSTS.regOooCapital }) : ''}</button>`;
     } else {
-      upgradeHtml = `<span class="hint" style="margin:0;">Максимальный уровень регистрации бизнеса.</span>`;
+      upgradeHtml = `<span class="hint" style="margin:0;">${CS.t ? CS.t('stats.reg_max') : ''}</span>`;
     }
 
     status.innerHTML = `
-      ✅ Зарегистрирован как <b>${typeLabel[r.type]}</b><br>
+      ${CS.t ? CS.t('stats.reg_ok', { type: typeLabel[r.type] }) : typeLabel[r.type]}<br>
       ${r.name}<br>ИНН: ${r.inn}${r.ogrn ? ' · ОГРН: ' + r.ogrn : ''}
       <div class="onec-actions" style="margin-top:8px;margin-bottom:0;">${upgradeHtml}</div>
     `;
+    const renameForm = document.getElementById('renameForm');
+    if (renameForm) {
+      renameForm.style.display = 'block';
+      const rn = document.getElementById('renameName');
+      if (rn && !rn.value) rn.value = r.name || '';
+    }
 
     const ipBtn = document.getElementById('btnUpgradeIp');
     if (ipBtn) ipBtn.addEventListener('click', () => upgradeBusiness('ip', COSTS.regIp));
     const oooBtn = document.getElementById('btnUpgradeOoo');
     if (oooBtn) oooBtn.addEventListener('click', () => upgradeBusiness('ooo', COSTS.regOoo + COSTS.regOooCapital));
   } else {
+    const renameForm = document.getElementById('renameForm');
+    if (renameForm) renameForm.style.display = 'none';
     typesBox.style.display = '';
     formBox.style.display = document.querySelector('input[name="regType"]:checked') ? 'block' : 'none';
-    status.textContent = 'Статус: не зарегистрирован. Выберите форму и подайте заявление.';
+    status.textContent = CS.t ? CS.t('stats.unregistered') : '';
   }
 
   renderBizRisk();
@@ -232,12 +256,11 @@ function renderBizRisk() {
   const capWarned = !!onec.registration.capWarned;
 
   const labels = {
-    none: '❌ Не зарегистрирован — риск проверки ФНС растёт от пассивного дохода (стажёры, недвижимость).',
+    none: CS.t ? CS.t('stats.risk_none') : '',
     self: capWarned
-      ? '⚠️ Лимит самозанятого превышен — риск проверки растёт точно так же, как без регистрации. Оформите ИП.'
-      : '🧾 Самозанятый — доход в пределах лимита, риска нет.',
-    ip: '💼 ИП — деятельность легальна, лимитов и риска нет.',
-    ooo: '🏢 ООО — деятельность легальна, лимитов и риска нет. Доход с недвижимости +10%.'
+      ? (CS.t ? CS.t('stats.risk_self_over') : '') : (CS.t ? CS.t('stats.risk_self_ok') : ''),
+    ip: CS.t ? CS.t('stats.risk_ip') : '',
+    ooo: CS.t ? CS.t('stats.risk_ooo') : ''
   };
 
   const showGauge = type === 'none' || (type === 'self' && capWarned);
@@ -257,8 +280,9 @@ function renderReport(onec) {
   const box = document.getElementById('readinessBox');
   const items = readinessList(onec);
   const ready = items.filter(i => i.ok).length;
+  const p = onec.period || {};
   box.innerHTML = `
-    <div style="margin-bottom:6px;font-weight:bold;">Готовность: ${ready}/${items.length}</div>
+    <div style="margin-bottom:6px;font-weight:bold;">Диагностика: ${ready}/${items.length}</div>
     <div class="checklist">
       ${items.map(i => `
         <div class="check-item ${i.ok ? 'done' : 'locked'}">
@@ -274,17 +298,25 @@ function renderReport(onec) {
   const rate = getTaxRate(onec);
   const due = Math.floor(income * rate);
   const paid = taxes.totalPaid || 0;
-  const remain = due - paid;
+  const remain = Math.max(0, due - paid);
 
+  const repPeriod = document.getElementById('repPeriod');
+  if (repPeriod) repPeriod.textContent = String(p.id || 1);
   document.getElementById('repIncome').textContent = Math.floor(income) + '💰';
   document.getElementById('repRate').textContent = (rate * 100).toFixed(0) + '%';
   document.getElementById('repTax').textContent = due + '💰';
   document.getElementById('repPaid').textContent = paid + '💰';
-  document.getElementById('repRemain').textContent = (remain >= 0 ? remain : remain) + '💰';
+  document.getElementById('repRemain').textContent = remain + '💰';
 
-  const canSubmit = isReadyToSubmit(onec);
-  document.getElementById('btnSubmitReport').disabled = !canSubmit;
-  document.getElementById('btnFormReport').disabled = !onec.installed;
+  const workplace = isWorkplaceReady(onec);
+  const btnDiag = document.getElementById('btnDiagnose');
+  const btnForm = document.getElementById('btnFormReport');
+  const btnPay = document.getElementById('btnPayTax');
+  const btnSub = document.getElementById('btnSubmitReport');
+  if (btnDiag) btnDiag.disabled = !workplace || !!p.diagnosed;
+  if (btnForm) btnForm.disabled = !workplace || !p.diagnosed || !!p.declared;
+  if (btnPay) btnPay.disabled = !p.declared || !!p.taxPaid || remain <= 0;
+  if (btnSub) btnSub.disabled = !isReadyToSubmit(onec);
 }
 
 function getTaxableIncome() {
@@ -313,12 +345,22 @@ async function spend(amount, reason) {
 }
 
 async function buyLicense(key, price) {
-  const ok = await spend(price, 'Покупка: ' + key);
+  const ok = await spend(price, 'Подписка/лицензия: ' + key);
   if (!ok) return;
+  state = await CS.loadState();
   const onec = ensureOnec(state);
+  const tick = state._acctTick || 0;
   onec[key] = true;
+  if (key === 'itsPaid') {
+    onec.itsUntilTick = tick + COSTS.itsDays;
+    onec.updated = true;
+  }
+  if (key === 'reportingPaid') {
+    onec.reportingUntilTick = tick + COSTS.reportingDays;
+  }
+  if (typeof CS.recordExpense === 'function') CS.recordExpense(state, 'purchase', price);
   await CS.saveState(state);
-  log('setupLog', `Оплачена лицензия (${price}💰). Ключ активирован.`, 'ok');
+  log('setupLog', `Оплачено (${price}💰). ${key === 'licensePaid' ? 'Лицензия активна.' : 'Подписка продлена.'}`, 'ok');
   renderAll();
 }
 
@@ -347,7 +389,7 @@ async function upgradeBusiness(newType, cost) {
 
 // Установка / обновление
 document.getElementById('btnInstall').addEventListener('click', async () => {
-  log('setupLog', 'Запуск установщика 1С:Предприятие 8.3...', 'info');
+  log('setupLog', 'Развёртывание кабинета учёта…', 'info');
   await delay(600);
   state = await CS.loadState();
   const onec = ensureOnec(state);
@@ -362,11 +404,11 @@ document.getElementById('btnUpdate').addEventListener('click', async () => {
   state = await CS.loadState();
   const onec = ensureOnec(state);
   if (!onec.itsPaid) {
-    log('setupLog', 'ОШИБКА: для обновления нужен активный 1С:ИТС.', 'err');
-    alert('Для получения обновлений требуется подписка 1С:ИТС. Купите её во вкладке «Настройка 1С».');
+    log('setupLog', 'ОШИБКА: нужна активная подписка на обновления.', 'err');
+    alert('Для обновлений продлите подписку во вкладке «Рабочее место».');
     return;
   }
-  const ok = await spend(COSTS.update, 'Обновление 1С до ' + onec.targetVersion);
+  const ok = await spend(COSTS.update, 'Обновление кабинета до ' + onec.targetVersion);
   if (!ok) return;
   log('setupLog', 'Скачивание дистрибутива релиза ' + onec.targetVersion + '...', 'info');
   await delay(800);
@@ -385,10 +427,10 @@ document.getElementById('btnPatch').addEventListener('click', async () => {
   state = await CS.loadState();
   const onec = ensureOnec(state);
   if (!onec.itsPaid) {
-    log('setupLog', 'ОШИБКА: патчи доступны только по ИТС.', 'err');
+    log('setupLog', 'ОШИБКА: патчи доступны только при активной подписке на обновления.', 'err');
     return;
   }
-  const ok = await spend(COSTS.patch, 'Установка патча 1С');
+  const ok = await spend(COSTS.patch, 'Установка патча безопасности');
   if (!ok) return;
   log('setupLog', `Установка патча ${onec.patchesInstalled + 1}/${onec.patchesNeeded}...`, 'info');
   await delay(500);
@@ -401,14 +443,16 @@ document.getElementById('btnPatch').addEventListener('click', async () => {
 });
 
 document.getElementById('btnDirs').addEventListener('click', async () => {
-  const ok = await spend(COSTS.directories, 'Загрузка справочников 1С');
+  const ok = await spend(COSTS.directories, 'Обновление справочников ФНС');
   if (!ok) return;
-  log('setupLog', 'Загрузка классификаторов ОКВЭД, КБК, адресов ФИАС...', 'info');
+  log('setupLog', 'Загрузка классификаторов ОКВЭД, КБК, адресов…', 'info');
   await delay(700);
   state = await CS.loadState();
-  ensureOnec(state).directoriesLoaded = true;
+  const o = ensureOnec(state);
+  o.directoriesLoaded = true;
+  o.dirsUntilTick = (state._acctTick || 0) + COSTS.dirsDays;
   await CS.saveState(state);
-  log('setupLog', 'Справочники успешно загружены.', 'ok');
+  log('setupLog', 'Справочники обновлены (со временем устареют — обновляйте снова).', 'ok');
   renderAll();
 });
 
@@ -459,37 +503,72 @@ document.getElementById('btnRegister').addEventListener('click', async () => {
 document.getElementById('btnOpenCrypto').addEventListener('click', () => openApp('crypto'));
 document.getElementById('btnOpenStore').addEventListener('click', () => openApp('store'));
 
-// Отчётность
-document.getElementById('btnFormReport').addEventListener('click', () => {
+const btnDiagnose = document.getElementById('btnDiagnose');
+if (btnDiagnose) {
+  btnDiagnose.addEventListener('click', async () => {
+    state = await CS.loadState();
+    const onec = ensureOnec(state);
+    if (!isWorkplaceReady(onec)) {
+      log('reportLog', 'Диагностика: рабочее место не готово (смотрите чеклист).', 'err');
+      return;
+    }
+    log('reportLog', 'Диагностика: проверка подписок, ЭЦП, регистрации…', 'info');
+    await delay(400);
+    onec.period = onec.period || {};
+    onec.period.diagnosed = true;
+    await CS.saveState(state);
+    log('reportLog', 'Диагностика OK. Можно формировать декларацию.', 'ok');
+    renderAll();
+  });
+}
+
+document.getElementById('btnFormReport').addEventListener('click', async () => {
+  state = await CS.loadState();
   const onec = ensureOnec(state);
-  if (!onec.installed) {
-    log('reportLog', '1С не установлена.', 'err');
+  if (!onec.period || !onec.period.diagnosed) {
+    log('reportLog', 'Сначала пройдите диагностику (шаг 1).', 'err');
     return;
   }
-  log('reportLog', 'Формирование декларации 3-НДФЛ / УСН / НПД...', 'info');
-  setTimeout(() => {
-    log('reportLog', 'Декларация сформирована. Проверьте суммы и подпишите ЭЦП.', 'ok');
-  }, 500);
+  if (!isWorkplaceReady(onec)) {
+    log('reportLog', 'Рабочее место не готово.', 'err');
+    return;
+  }
+  log('reportLog', 'Формирование декларации (УСН / НПД / прибыль)…', 'info');
+  await delay(500);
+  onec.period.declared = true;
+  await CS.saveState(state);
+  log('reportLog', 'Декларация сформирована. Далее — уплата налога (шаг 3).', 'ok');
+  renderAll();
 });
 
 document.getElementById('btnPayTax').addEventListener('click', async () => {
   state = await CS.loadState();
   const onec = ensureOnec(state);
+  if (!onec.period || !onec.period.declared) {
+    log('reportLog', 'Сначала сформируйте декларацию (шаг 2).', 'err');
+    return;
+  }
   const income = getTaxableIncome();
   const rate = getTaxRate(onec);
   const due = Math.floor(income * rate);
   const paid = onec.taxes.totalPaid || 0;
   const remain = due - paid;
   if (remain <= 0) {
-    alert('Налог уже уплачен полностью.');
+    onec.period.taxPaid = true;
+    await CS.saveState(state);
+    log('reportLog', 'Задолженности нет — шаг 3 отмечен.', 'ok');
+    renderAll();
     return;
   }
   const ok = await spend(remain, 'Уплата налога');
   if (!ok) return;
   state = await CS.loadState();
-  ensureOnec(state).taxes.totalPaid = due;
+  const o = ensureOnec(state);
+  o.taxes.totalPaid = due;
+  o.period.taxPaid = true;
+  if (typeof CS.recordExpense === 'function') CS.recordExpense(state, 'tax', remain);
   await CS.saveState(state);
-  log('reportLog', `Налог уплачен: ${remain}💰`, 'ok');
+  log('reportLog', `Налог уплачен: ${remain}💰. Можно отправлять (шаг 4).`, 'ok');
   renderAll();
 });
 
@@ -497,40 +576,58 @@ document.getElementById('btnSubmitReport').addEventListener('click', async () =>
   state = await CS.loadState();
   const onec = ensureOnec(state);
   if (!isReadyToSubmit(onec)) {
-    alert('Не выполнены все условия для сдачи отчётности. Смотрите чеклист.');
-    return;
-  }
-  const income = getTaxableIncome();
-  const rate = getTaxRate(onec);
-  const due = Math.floor(income * rate);
-  const paid = onec.taxes.totalPaid || 0;
-  if (paid < due) {
-    log('reportLog', 'ОШИБКА ФНС: налог не уплачен. Сначала оплатите задолженность.', 'err');
-    alert('Налоговая отклонила отчёт: есть задолженность по налогу.');
+    alert('Порядок: диагностика → декларация → налог → отправка.\nСмотрите чеклист готовности.');
     return;
   }
 
-  log('reportLog', 'Подписание пакета ЭЦП (токен)...', 'info');
+  log('reportLog', 'Подписание пакета ЭЦП…', 'info');
   await delay(700);
-  log('reportLog', 'Отправка в приёмник ФНС...', 'info');
+  log('reportLog', 'Отправка в приёмник ФНС…', 'info');
   await delay(800);
 
   state = await CS.loadState();
   const o = ensureOnec(state);
   o.reportsSubmitted += 1;
   o.lastReportAt = Date.now();
-  // Небольшой «возврат/субсидия» за дисциплину — заметно меньше типичного налога,
-  // чтобы сдача отчётности не была чистым плюсом к кэшу.
+  o.period.submitted = true;
   const bonus = 25 + Math.min(50, o.reportsSubmitted * 5);
   state.cash += bonus;
+  if (typeof CS.recordIncome === 'function') CS.recordIncome(state, 'other', bonus);
   if (!state.stats.transactions) state.stats.transactions = [];
-  state.stats.transactions.push({ type: 'onec_bonus', amount: -bonus, date: Date.now(), description: 'Бонус за сдачу отчётности' });
+  state.stats.transactions.push({ type: 'tax_bonus', amount: -bonus, date: Date.now(), description: 'Бонус за сдачу' });
   await CS.saveState(state);
 
-  log('reportLog', `Отчёт принят ФНС. Протокол входящий №${1000 + o.reportsSubmitted}. Бонус: +${bonus}💰`, 'ok');
-  alert(`✅ Отчётность сдана!\nПротокол №${1000 + o.reportsSubmitted}\nБонус за дисциплину: +${bonus}💰`);
+  log('reportLog', `Отчёт принят. Протокол №${1000 + o.reportsSubmitted}. Бонус +${bonus}💰. Для следующей сдачи — «Новый период».`, 'ok');
+  alert(`✅ Отчётность сдана!\nПротокол №${1000 + o.reportsSubmitted}\nБонус: +${bonus}💰`);
   renderAll();
 });
+
+const btnNewPeriod = document.getElementById('btnNewPeriod');
+if (btnNewPeriod) {
+  btnNewPeriod.addEventListener('click', async () => {
+    state = await CS.loadState();
+    CS.startNewTaxPeriod(state);
+    await CS.saveState(state);
+    log('reportLog', 'Открыт новый налоговый период. Снова: диагностика → …', 'info');
+    renderAll();
+  });
+}
+
+const btnRename = document.getElementById('btnRename');
+if (btnRename) {
+  btnRename.addEventListener('click', async () => {
+    state = await CS.loadState();
+    const name = (document.getElementById('renameName') || {}).value || '';
+    const r = CS.renameBusiness(state, name);
+    if (!r.success) {
+      alert(r.reason === 'cash' ? `Нужно ${r.cost}💰` : 'Не удалось сменить название');
+      return;
+    }
+    await CS.saveState(state);
+    alert('Наименование обновлено: ' + r.name);
+    renderAll();
+  });
+}
 
 function delay(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -581,8 +678,20 @@ function getExpensesForPeriod(st, period) {
 
 function renderStatsTab() {
   if (!state) return;
-  const income = getIncomeForPeriod(state, selectedPeriod);
-  const expenses = getExpensesForPeriod(state, selectedPeriod);
+  const L = typeof CS.ensureLedger === 'function' ? CS.ensureLedger(state) : null;
+  let income = 0;
+  let expenses = 0;
+  if (L) {
+    income = Object.keys(L.income).reduce((s, k) => s + (L.income[k] || 0), 0);
+    expenses = Object.keys(L.expense).reduce((s, k) => s + (L.expense[k] || 0), 0);
+  } else {
+    income = getIncomeForPeriod(state, selectedPeriod);
+    expenses = getExpensesForPeriod(state, selectedPeriod);
+  }
+  // fallback: если книга пуста, показать lifetime
+  if (income <= 0 && state.lifetime && state.lifetime.cashEarned) {
+    income = state.lifetime.cashEarned;
+  }
   document.getElementById('statsBalance').textContent = Math.floor(state.cash);
   document.getElementById('statsIncome').textContent = Math.floor(income);
   document.getElementById('statsExpenses').textContent = Math.floor(expenses);
@@ -593,6 +702,37 @@ function renderStatsTab() {
   document.getElementById('lastReportDate').textContent = onec.lastReportAt
     ? new Date(onec.lastReportAt).toLocaleString('ru')
     : '—';
+
+  const br = document.getElementById('statsBreakdown');
+  if (br && L) {
+    const incLabels = {
+      click: 'Клики / работа',
+      freelance: 'Биржа заказов',
+      property: 'Недвижимость',
+      intern: 'Стажёры / штат',
+      casino: 'Казино',
+      other: 'Прочее'
+    };
+    const expLabels = {
+      rent: 'Аренда',
+      tax: 'Налоги',
+      penalty: 'Штрафы',
+      purchase: 'Покупки / подписки',
+      debt: 'Долг / проценты',
+      other: 'Прочее'
+    };
+    const lines = (obj, labels) =>
+      Object.keys(labels).map(k => {
+        const v = Math.floor(obj[k] || 0);
+        if (v <= 0) return '';
+        return `<div>${labels[k]}: <b>${v}💰</b></div>`;
+      }).join('');
+    br.innerHTML =
+      '<div style="font-weight:bold;margin-bottom:4px;">Доходы по источникам</div>' +
+      (lines(L.income, incLabels) || '<div class="hint">Пока нет размеченных поступлений — играйте дальше, книга начнёт заполняться.</div>') +
+      '<div style="font-weight:bold;margin:10px 0 4px;">Расходы по статьям</div>' +
+      (lines(L.expense, expLabels) || '<div class="hint">Расходов в книге ещё нет.</div>');
+  }
 }
 
 function renderCharts() {
@@ -609,7 +749,7 @@ function renderCharts() {
     ctx.fillStyle = '#888';
     ctx.font = '12px Tahoma';
     ctx.textAlign = 'center';
-    ctx.fillText('Недостаточно данных', canvas.width / 2, canvas.height / 2);
+    ctx.fillText((CS.t ? CS.t('m.8839479f0a') : 'Недостаточно данных'), canvas.width / 2, canvas.height / 2);
     return;
   }
   const pad = { t: 8, b: 18, l: 36, r: 8 };

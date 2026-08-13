@@ -4,6 +4,7 @@ html, body { height: 100%; }
   position: relative;
   min-height: calc(100vh - 34px);
   padding: 16px;
+  padding-bottom: 50px; /* место под fixed-таскбар */
   overflow: hidden;
 }
 
@@ -45,12 +46,19 @@ html, body { height: 100%; }
   cursor: pointer;
   padding: 6px 4px;
   border-radius: 2px;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .desktop-icon:hover,
 .desktop-icon:focus {
   border-color: rgba(255,255,255,0.6);
   background: rgba(255,255,255,0.08);
   outline: none;
+}
+.desktop-icon.selected {
+  border-color: rgba(255,255,255,0.85);
+  background: rgba(0, 0, 128, 0.35);
 }
 .desktop-icon:active { background: rgba(255,255,255,0.18); }
 .desktop-icon .icon-glyph {
@@ -127,7 +135,7 @@ html, body { height: 100%; }
 }
 .tray-mail[hidden] { display: none; }
 
-/* Пуш-уведомления о почте */
+/* Пуш-уведомления о почте — снизу справа (не пересекаются с ачивками сверху) */
 .mail-toast-stack {
   position: fixed;
   right: 10px;
@@ -138,6 +146,8 @@ html, body { height: 100%; }
   gap: 8px;
   pointer-events: none;
   max-width: min(320px, calc(100vw - 20px));
+  max-height: min(42vh, 320px);
+  overflow: hidden;
 }
 .mail-toast {
   pointer-events: auto;
@@ -205,7 +215,7 @@ html, body { height: 100%; }
 .floating-window.dragging { opacity: 0.92; }
 
 /* ---- Таскбар: кнопки открытых окон ---- */
-.taskbar-windows { display: flex; gap: 4px; overflow-x: auto; }
+.taskbar-windows { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; }
 .taskbar-win-btn {
   font-size: 11px;
   padding: 4px 10px;
@@ -214,6 +224,7 @@ html, body { height: 100%; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.taskbar-win-btn[hidden] { display: none !important; }
 .taskbar-win-btn.focused {
   border-top: 2px solid var(--dark);
   border-left: 2px solid var(--dark);
@@ -249,6 +260,72 @@ html, body { height: 100%; }
 .history-item.realty { color: #6a4a12; }
 .history-item.rent { color: var(--gold); }
 .history-item.debt { color: var(--maroon); font-weight: bold; }
+
+/* ---- Биржа заказов (канбан) ---- */
+.fl-body { display: flex; flex-direction: column; gap: 8px; height: 100%; box-sizing: border-box; }
+.fl-header .fl-sub { font-size: 11px; color: #555; margin-top: 2px; }
+.fl-kanban {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 0.85fr;
+  gap: 8px;
+  flex: 1;
+  min-height: 220px;
+}
+.fl-col {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.fl-col-title { font-size: 11px; font-weight: bold; margin-bottom: 6px; }
+.fl-col-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.fl-card {
+  padding: 8px;
+  font-size: 11px;
+  background: #fff;
+}
+.fl-card-top { margin-bottom: 4px; }
+.fl-card-client { color: #555; margin-bottom: 4px; }
+.fl-card-brief { line-height: 1.35; margin-bottom: 6px; color: #222; }
+.fl-card-meta { font-size: 10px; color: #444; margin-bottom: 6px; }
+.fl-card-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.fl-card-actions .win95-btn { font-size: 10px; padding: 2px 8px; }
+.fl-empty { font-size: 11px; color: #666; padding: 8px; line-height: 1.4; }
+.fl-deadline { font-size: 11px; margin: 6px 0 4px; }
+.fl-steps { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.fl-step { font-size: 11px; line-height: 1.3; }
+.fl-step.done { color: #666; text-decoration: line-through; }
+.fl-step.current { font-weight: bold; color: #000; }
+.fl-step.pending { color: #888; }
+.fl-done-item { font-size: 10px; padding: 3px 2px; border-bottom: 1px dotted #999; }
+.fl-done-item.fail { color: var(--maroon); }
+.fl-chat-wrap { padding: 8px; max-height: 180px; display: flex; flex-direction: column; gap: 6px; }
+.fl-chat-wrap[hidden] { display: none !important; }
+.fl-chat-title { font-size: 11px; font-weight: bold; }
+.fl-chat-log {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 60px;
+  max-height: 90px;
+  background: #fff;
+  border: 2px inset #fff;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+.fl-msg { margin-bottom: 4px; line-height: 1.3; }
+.fl-msg.me { color: #1a4f8f; }
+.fl-msg-who { font-weight: bold; margin-right: 4px; }
+.fl-msg-time { float: right; color: #888; font-size: 9px; }
+.fl-chat-replies { display: flex; flex-wrap: wrap; gap: 4px; }
+.fl-reply-btn { font-size: 10px; padding: 2px 6px; max-width: 100%; }
+.work-chat-hint {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 280px;
+}
 
 .work-body { display: flex; flex-direction: column; height: 100%; }
 .work-instruction { font-size: 14px; font-weight: bold; margin-bottom: 10px; min-height: 20px; }
@@ -323,9 +400,75 @@ html, body { height: 100%; }
   display: block;
 }
 
+/* ---- Адаптив / масштабы экрана ---- */
+.sim-disclaimer {
+  font-size: 10px;
+  line-height: 1.35;
+  padding: 5px 8px;
+  margin: 0 0 6px;
+  background: #fff8d0;
+  color: #333;
+  border: 1px solid #c9b86a;
+}
+
+@media (max-width: 900px) {
+  .desktop { padding: 10px; padding-bottom: 48px; }
+  .panel-body { gap: 8px; }
+  .panel-gauge { width: 130px; }
+  .desktop-icons { gap: 12px; }
+  .desktop-icon .icon-glyph { font-size: 28px; }
+  .desktop-icon .icon-label { font-size: 11px; max-width: 72px; }
+}
+
 @media (max-width: 700px) {
-  .floating-window { min-width: 260px !important; left: 8px !important; width: calc(100vw - 32px) !important; }
-  .panel-gauge { width: 120px; }
+  .floating-window {
+    min-width: 240px !important;
+    left: 4px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 48px) !important;
+  }
+  .floating-window .win95-body { max-height: calc(100vh - 90px); }
+  .panel-window { margin-bottom: 8px; }
+  .panel-body { flex-direction: column; align-items: stretch; }
+  .panel-gauge { width: 100%; }
+  .combo-badge { margin-left: 0; }
+  .desktop-icons {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+  .desktop-icon { padding: 4px 2px; min-width: 64px; }
+  .desktop-icon .icon-glyph { font-size: 26px; }
+  .desktop-icon .icon-label {
+    font-size: 10px;
+    max-width: 64px;
+    word-break: break-word;
+  }
+  .win95-taskbar { height: 36px; padding: 2px; }
+  .start-menu { min-width: min(220px, calc(100vw - 12px)); max-height: min(70vh, 420px); overflow-y: auto; }
+  .tutorial-window { width: min(100%, 400px); }
+  .tutorial-text { font-size: 12px; max-height: 40vh; overflow-y: auto; }
+  .boost-grid { grid-template-columns: 1fr !important; }
+  .event-window { width: min(100%, 380px) !important; }
+}
+
+@media (max-width: 480px) {
+  .panel-badge { font-size: 11px; padding: 4px 6px; }
+  .desktop { padding: 8px; padding-bottom: 44px; }
+  .floating-window { top: 4px !important; }
+  .taskbar-win-btn { font-size: 10px; max-width: 100px; }
+}
+
+/* Высокий zoom / крупные шрифты ОС */
+@media (min-resolution: 1.5dppx) {
+  .desktop-icon .icon-label { -webkit-font-smoothing: antialiased; }
+}
+
+/* Низкие экраны (ноутбуки 768p и меньше по высоте) */
+@media (max-height: 700px) {
+  .floating-window { max-height: calc(100vh - 44px) !important; }
+  .tutorial-text { max-height: 32vh; overflow-y: auto; }
+  .boot-inner { transform: scale(0.92); }
 }
 
 /* ---- Льготный период ---- */
@@ -415,16 +558,18 @@ html, body { height: 100%; }
   color: #000;
 }
 
-/* Тосты достижений */
+/* Тосты достижений — сверху справа, отдельно от почты */
 .ach-toast-stack {
   position: fixed;
   right: 12px;
-  bottom: 48px;
+  top: 12px;
   z-index: 9998;
   display: flex;
   flex-direction: column;
   gap: 8px;
   pointer-events: none;
+  max-height: min(48vh, 360px);
+  overflow: hidden;
 }
 .ach-toast {
   display: flex;
@@ -482,16 +627,41 @@ html, body { height: 100%; }
   font-size: 12px;
   line-height: 1.45;
   white-space: pre-wrap;
-  min-height: 80px;
+  min-height: 40px;
 }
+.tutorial-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: #e8e8e8;
+  border: 2px inset #fff;
+}
+.tutorial-auth .win95-input {
+  width: 100%;
+  box-sizing: border-box;
+  font: 12px Tahoma, sans-serif;
+  padding: 3px 5px;
+  border: 2px inset #fff;
+}
+.tutorial-auth[hidden] { display: none !important; }
 .tutorial-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
   margin-top: 4px;
+  flex-wrap: wrap;
+}
+.tutorial-actions #tutorialBackBtn {
+  margin-right: auto;
 }
 .tutorial-actions .primary {
   font-weight: bold;
+}
+.tutorial-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* ---- Случайные события ---- */
@@ -632,8 +802,15 @@ html, body { height: 100%; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ---- Start menu ---- */
-.win95-taskbar { position: relative; }
+/* ---- Taskbar + Start menu ---- */
+.win95-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  height: 34px;
+}
 .start-btn { position: relative; z-index: 2; }
 .start-menu {
   position: absolute;
@@ -718,8 +895,225 @@ html, body { height: 100%; }
   flex: 1;
   min-width: 100px;
 }
+.settings-row input.win95-input,
+.settings-row input[type="email"],
+.settings-row input[type="password"] {
+  flex: 1;
+  min-width: 140px;
+  font: 12px Tahoma, sans-serif;
+  padding: 3px 5px;
+  border: 2px inset #fff;
+  background: #fff;
+  color: #000;
+}
 .settings-hint {
   font-size: 11px;
   color: #444;
   line-height: 1.35;
+}
+
+/* ---- Бустеры / панель ---- */
+.panel-boost-row {
+  margin-top: 4px;
+}
+.panel-boost-btn {
+  width: 100%;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+}
+.booster-badge {
+  background: #fff8c4;
+  border-color: #c9a000;
+  color: #5a4500;
+}
+
+.boosters-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+.boost-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  flex-wrap: wrap;
+}
+.boost-tab.active {
+  font-weight: bold;
+  background: #c0c0c0;
+}
+.boost-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.boost-hint {
+  font-size: 11px;
+  padding: 6px 8px;
+  line-height: 1.35;
+  color: #333;
+}
+.boost-active {
+  min-height: 28px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.boost-active:empty::before {
+  content: 'Нет активных бустеров';
+  color: #666;
+}
+.boost-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.boost-card {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: #c0c0c0;
+}
+.boost-card .bi { font-size: 22px; text-align: center; }
+.boost-card .bn { font-weight: bold; font-size: 12px; }
+.boost-card .bt { font-size: 11px; color: #333; }
+.boost-card .ba { white-space: nowrap; }
+.boost-ad-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+.boost-ad-btn {
+  font-weight: bold;
+  padding: 6px 10px;
+}
+.boost-ad-cd {
+  font-size: 11px;
+  color: #555;
+}
+.boost-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.boost-collect {
+  padding: 8px;
+  text-align: center;
+  background: #c0c0c0;
+  min-height: 72px;
+}
+.boost-collect.locked {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+.boost-collect .ci { font-size: 24px; }
+.boost-collect .cn { font-weight: bold; font-size: 11px; margin-top: 4px; }
+.boost-collect .ch { font-size: 10px; color: #333; margin-top: 2px; }
+.boost-support-box {
+  padding: 12px;
+  background: #c0c0c0;
+}
+.boost-support-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.boost-support-box p {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+.boost-support-note {
+  margin-top: 8px;
+  font-size: 10px;
+  color: #555;
+  word-break: break-all;
+}
+
+/* ---- Рекламный оверлей ---- */
+.ad-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ad-overlay[hidden] { display: none !important; }
+.ad-dialog {
+  width: min(360px, 92vw);
+  background: #c0c0c0;
+  padding: 4px;
+}
+.ad-title {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: #fff;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 4px 8px;
+}
+.ad-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ad-fake-banner {
+  height: 100px;
+  background: repeating-linear-gradient(
+    45deg,
+    #d0d0d0,
+    #d0d0d0 10px,
+    #e8e8e8 10px,
+    #e8e8e8 20px
+  );
+  border: 2px inset #808080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  color: #444;
+}
+.ad-progress {
+  height: 14px;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.ad-progress i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  transition: width 0.2s linear;
+}
+.ad-timer { font-size: 12px; font-weight: bold; }
+.ad-note { font-size: 11px; color: #333; line-height: 1.35; }
+.ad-dialog > .win95-btn {
+  margin: 0 12px 12px;
+  width: calc(100% - 24px);
+}
+
+
+/* Tutorial language picker */
+.tutorial-lang-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 8px;
+  font-size: 12px;
+}
+.tutorial-lang-row select {
+  min-width: 130px;
+  font-size: 12px;
+  padding: 2px 4px;
 }
